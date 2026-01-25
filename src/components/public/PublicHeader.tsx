@@ -21,7 +21,7 @@ export default function PublicHeader(): JSX.Element {
             alt="logo text"
             width="100" 
             height="35"
-            className="d-inline-block align-text-top ms-3" 
+            className="d-inline-block align-text-top ms-2" 
           />
           </a>
 
