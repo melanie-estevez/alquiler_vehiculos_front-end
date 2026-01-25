@@ -3,6 +3,8 @@ import VehiculosPage from "./pages/private/VehiculosPage";
 function App() {
   return (
     <div>
+      <PublicHeader />
+      <PublicFooter/>
       <SucursalesPage />
       <VehiculosPage />
     </div>
