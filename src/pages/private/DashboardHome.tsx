@@ -1,40 +1,38 @@
-// src/pages/private/DashboardHome.tsx
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { Role } from "../../utils/roles";
 
 export default function DashboardHome() {
   const { user } = useAuth();
+  const isAdmin = user?.role === Role.ADMIN;
 
   return (
-    <div className="container mt-4">
-      <h2>Dashboard</h2>
+    <div className="container mt-5 pt-4">
+      <h2 className="mb-4 text-dark">Dashboard</h2>
 
-      <div className="alert alert-info">
-        Bienvenido{" "}
-        <strong>{user?.email}</strong>
-      </div>
-
-      <p>
-        Desde aquí podrás administrar sucursales, vehículos, reservas y
-        mantenimientos.
-      </p>
-
-      <div className="d-flex gap-3 mt-4">
-        <a href="/admin/sucursales" className="btn btn-outline-dark">
-          Sucursales
-        </a>
-
-        <a href="/admin/vehiculos" className="btn btn-outline-dark">
-          Vehículos
-        </a>
-
-        <a href="/admin/reservas" className="btn btn-outline-dark">
-          Reservas
-        </a>
-
-        <a href="/admin/mantenimientos" className="btn btn-outline-dark">
-          Mantenimientos
-        </a>
-      </div>
+      {isAdmin ? (
+        <div className="d-flex flex-column gap-2">
+          <Link className="btn btn-dark" to="/admin/sucursales">
+            Gestionar Sucursales
+          </Link>
+          <Link className="btn btn-dark" to="/admin/vehiculos">
+            Gestionar Vehículos
+          </Link>
+          <Link className="btn btn-dark" to="/admin/reservas">
+            Gestionar Reservas
+          </Link>
+          <Link className="btn btn-dark" to="/admin/mantenimientos">
+            Gestionar Mantenimientos
+          </Link>
+        </div>
+      ) : (
+        <div className="d-flex flex-column gap-2">
+          <Link className="btn btn-dark" to="/carros">
+            Ver carros disponibles
+          </Link>
+          {/* luego aquí pones "Mis reservas" */}
+        </div>
+      )}
     </div>
   );
 }
