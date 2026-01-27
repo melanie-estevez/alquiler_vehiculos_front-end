@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { ReactNode } from "react";
-import { Role } from "../utils/roles";
+import { type Role } from "../utils/roles";
 
 interface Props {
   role: Role;
