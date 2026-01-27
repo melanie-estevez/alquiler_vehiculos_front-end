@@ -7,9 +7,9 @@ import DashboardHome from "../pages/private/DashboardHome";
 import SucursalesPage from "../pages/private/SucursalesPage";
 import VehiculosPage from "../pages/private/VehiculosPage";
 import ReservasPage from "../pages/private/ReservasPage";
+import MantenimientosPage from "../pages/private/MantenimientosPage";
 
 import { Role } from "../utils/roles";
-import MantenimientosPage from "../pages/private/MantenimientosPage";
 
 export const privateRoutes: RouteObject = {
   element: <RequireAuth />,
@@ -17,10 +17,7 @@ export const privateRoutes: RouteObject = {
     {
       element: <PublicLayout />,
       children: [
-        {
-          path: "/dashboard",
-          element: <DashboardHome />,
-        },
+        { path: "/dashboard", element: <DashboardHome /> },
 
         {
           path: "/admin/sucursales",
@@ -56,7 +53,7 @@ export const privateRoutes: RouteObject = {
               <MantenimientosPage />
             </RequireRole>
           ),
-        }
+        },
       ],
     },
   ],
