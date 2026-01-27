@@ -1,49 +1,93 @@
-import type { JSX } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/logo.png";
 import logoText from "../../assets/logoText.png";
-export default function PublicHeader(): JSX.Element {
+
+export default function PublicHeader() {
+  const { user, logout, isAdmin } = useAuth();
+
   return (
-    <>
-      <nav className="navbar navbar-expand-lg navbar-dark fixed-top" style={{ backgroundColor: "#000000" }} >
-        <div className="container-fluid">
-          <a className="navbar-brand" href="/">
-            <img
-              src={logo} 
-              alt="logo"
-              width="60" 
-              height="35"
-              className="d-inline-block align-text-top ms-3"
-            />
+    <nav
+      className="navbar navbar-expand-lg border-bottom"
+      style={{ backgroundColor: "#000000" }}
+    >
+      <div className="container">
+        {/* LOGO */}
+        <Link className="navbar-brand d-flex align-items-center" to="/">
+          <img src={logo} alt="Logo" height="36" className="me-2" />
+          {logoText && (
+            <img src={logoText} alt="RentCar" height="28" />
+          )}
+        </Link>
 
-            <img
-            src={logoText}
-            alt="logo text"
-            width="100" 
-            height="35"
-            className="d-inline-block align-text-top ms-2" 
-          />
-          </a>
+        <div className="collapse navbar-collapse show">
+          {/* LEFT */}
+          <ul className="navbar-nav me-auto">
+            <li className="nav-item">
+              <Link className="nav-link text-white fw-semibold" to="/">
+                Home
+              </Link>
+            </li>
 
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span className="navbar-toggler-icon"></span>
-          </button>
+            {/* 🔐 ADMIN LINKS */}
+            {isAdmin && (
+              <>
+                <li className="nav-item">
+                  <Link
+                    className="nav-link text-white fw-semibold"
+                    to="/admin/vehiculos"
+                  >
+                    Vehículos
+                  </Link>
+                </li>
 
-          <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto">
-              <li className="nav-item">
-                <Link className="nav-link" to="/">Home</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link" to="/auth/login">Login</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="btn btn-outline-light ms-2" to="/auth/register">Sign-up</Link>
-              </li>
-            </ul>
+                <li className="nav-item">
+                  <Link
+                    className="nav-link text-white fw-semibold"
+                    to="/admin/sucursales"
+                  >
+                    Sucursales
+                  </Link>
+                </li>
+              </>
+            )}
+          </ul>
+
+          {/* RIGHT */}
+          <div className="d-flex align-items-center gap-3">
+            {!user ? (
+              <>
+                <Link
+                  to="/auth/login"
+                  className="btn btn-outline-light"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  to="/auth/register"
+                  className="btn btn-light fw-semibold"
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : (
+              <>
+                <span className="text-white small">
+                  {user.email}
+                </span>
+
+                <button
+                  className="btn btn-outline-light"
+                  onClick={logout}
+                >
+                  Logout
+                </button>
+              </>
+            )}
           </div>
         </div>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
 }

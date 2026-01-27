@@ -2,8 +2,8 @@ import { type Vehiculo } from "../../services/vehiculos.service";
 
 interface Props {
   vehiculos: Vehiculo[];
-  onEdit: (v: Vehiculo) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (v: Vehiculo) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function VehiculosTable({ vehiculos, onEdit, onDelete }: Props) {
@@ -16,7 +16,7 @@ export function VehiculosTable({ vehiculos, onEdit, onDelete }: Props) {
           <th>Año</th>
           <th>Precio/día</th>
           <th>Sucursal</th>
-          <th></th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -26,20 +26,25 @@ export function VehiculosTable({ vehiculos, onEdit, onDelete }: Props) {
             <td>{v.modelo}</td>
             <td>{v.anio}</td>
             <td>${v.precio_diario}</td>
-            <td>{v.sucursal?.nombre}</td>
+            <td>{v.sucursal?.nombre || "-"}</td>
             <td>
-              <button
-                className="btn btn-sm btn-warning me-2"
-                onClick={() => onEdit(v)}
-              >
-                Editar
-              </button>
-              <button
-                className="btn btn-sm btn-danger"
-                onClick={() => onDelete(v.id_vehiculo)}
-              >
-                Eliminar
-              </button>
+              {onEdit && (
+                <button
+                  className="btn btn-sm btn-warning me-2"
+                  onClick={() => onEdit(v)}
+                >
+                  Editar
+                </button>
+              )}
+
+              {onDelete && (
+                <button
+                  className="btn btn-sm btn-danger"
+                  onClick={() => onDelete(v.id_vehiculo)}
+                >
+                  Eliminar
+                </button>
+              )}
             </td>
           </tr>
         ))}

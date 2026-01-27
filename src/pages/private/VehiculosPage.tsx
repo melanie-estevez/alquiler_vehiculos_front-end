@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useVehiculos } from "../../hooks/useVehiculos";
 import { VehiculosTable } from "../../components/vehiculos/VehiculosTable";
 import { VehiculoFormModal } from "../../components/vehiculos/VehiculoFormModal";
+import { useAuth } from "../../context/AuthContext";
 import { type Vehiculo } from "../../services/vehiculos.service";
 
 export default function VehiculosPage() {
@@ -13,22 +14,27 @@ export default function VehiculosPage() {
     deleteVehiculo,
   } = useVehiculos();
 
-  const [showModal, setShowModal] = useState(false);
+  const { isAdmin } = useAuth();
+
   const [selected, setSelected] = useState<Vehiculo | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between mb-3">
         <h2>Vehículos</h2>
-        <button
-          className="btn btn-primary"
-          onClick={() => {
-            setSelected(null);
-            setShowModal(true);
-          }}
-        >
-          + Nuevo vehículo
-        </button>
+
+        {isAdmin && (
+          <button
+            className="btn btn-dark"
+            onClick={() => {
+              setSelected(null);
+              setShowModal(true);
+            }}
+          >
+            + Nuevo vehículo
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -36,21 +42,23 @@ export default function VehiculosPage() {
       ) : (
         <VehiculosTable
           vehiculos={vehiculos}
-          onEdit={(v) => {
+          onEdit={isAdmin ? (v) => {
             setSelected(v);
             setShowModal(true);
-          }}
-          onDelete={deleteVehiculo}
+          } : undefined}
+          onDelete={isAdmin ? deleteVehiculo : undefined}
         />
       )}
 
-      <VehiculoFormModal
-        show={showModal}
-        onClose={() => setShowModal(false)}
-        vehiculo={selected}
-        onCreate={createVehiculo}
-        onUpdate={updateVehiculo}
-      />
+      {isAdmin && (
+        <VehiculoFormModal
+          show={showModal}
+          onClose={() => setShowModal(false)}
+          vehiculo={selected}
+          onCreate={createVehiculo}
+          onUpdate={updateVehiculo}
+        />
+      )}
     </div>
   );
 }
