@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { VehiculosService } from "../../services/vehiculos.service";
 import { reservasService } from "../../services/reservas.service";
+import { useAuth } from "../../hooks/useAuth";  
 
 export default function ReservaCreatePage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // 🔥 prioridad: param -> query
+  const { user } = useAuth(); 
   const vehiculoId = id || searchParams.get("id_vehiculo");
 
   const [vehiculo, setVehiculo] = useState<any>(null);
@@ -18,6 +19,10 @@ export default function ReservaCreatePage() {
   const fechaInicio = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
+    if (!user?.id_cliente) {
+      navigate("/cliente/create"); 
+    }
+
     if (!vehiculoId) return;
 
     const loadVehiculo = async () => {
@@ -26,7 +31,7 @@ export default function ReservaCreatePage() {
     };
 
     loadVehiculo();
-  }, [vehiculoId]);
+  }, [vehiculoId, user, navigate]);
 
   if (!vehiculo) {
     return <p className="mt-5 text-center">Cargando vehículo...</p>;
@@ -39,20 +44,24 @@ export default function ReservaCreatePage() {
     setLoading(true);
 
     try {
+      if (!user?.id_cliente) {
+        alert("Por favor, complete los datos del cliente antes de hacer la reserva.");
+        navigate("/cliente/create");  
+        return;
+      }
+
       await reservasService.create({
         id_vehiculo: vehiculo.id_vehiculo,
-
-        // 🚫 CLIENTE (luego con auth)
-        // id_cliente: user.id_cliente,
-
+        id_cliente: user.id_cliente, 
         fecha_inicio: fechaInicio,
         dias,
         fecha_fin: fechaFin.toISOString().split("T")[0],
       });
 
       alert("Reserva creada");
-      navigate("/dashboard");
-    } catch {
+      navigate("/dashboard");  
+    } catch (error) {
+      console.error("Error al crear reserva", error);
       alert("Error al crear reserva");
     } finally {
       setLoading(false);
