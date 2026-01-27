@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { VehiculosService } from "../../services/vehiculos.service";
 import { reservasService } from "../../services/reservas.service";
 
 export default function ReservaCreatePage() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // 🔥 prioridad: param -> query
+  const vehiculoId = id || searchParams.get("id_vehiculo");
 
   const [vehiculo, setVehiculo] = useState<any>(null);
   const [dias, setDias] = useState(1);
@@ -14,15 +18,15 @@ export default function ReservaCreatePage() {
   const fechaInicio = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    if (!id) return;
+    if (!vehiculoId) return;
 
     const loadVehiculo = async () => {
-      const data = await VehiculosService.getById(id);
+      const data = await VehiculosService.getById(vehiculoId);
       setVehiculo(data);
     };
 
     loadVehiculo();
-  }, [id]);
+  }, [vehiculoId]);
 
   if (!vehiculo) {
     return <p className="mt-5 text-center">Cargando vehículo...</p>;
@@ -38,8 +42,8 @@ export default function ReservaCreatePage() {
       await reservasService.create({
         id_vehiculo: vehiculo.id_vehiculo,
 
-        // 🚫 CLIENTE (NO IMPLEMENTADO)
-        // id_cliente: "UUID_CLIENTE",
+        // 🚫 CLIENTE (luego con auth)
+        // id_cliente: user.id_cliente,
 
         fecha_inicio: fechaInicio,
         dias,
