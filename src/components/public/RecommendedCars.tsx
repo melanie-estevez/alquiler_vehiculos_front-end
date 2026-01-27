@@ -5,36 +5,51 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function RecommendedCars() {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+
+  const loadCars = async () => {
+    try {
+      const data = await VehiculosService.getAll();
+      setVehiculos(data.slice(0, 4)); // 4 recomendados
+    } catch (error) {
+      console.error("Error cargando recomendados", error);
+    }
+  };
 
   useEffect(() => {
     loadCars();
   }, []);
-
-  const loadCars = async () => {
-    const data = await VehiculosService.getAll();
-    setVehiculos(data.slice(0, 4));
-  };
 
   const handleReservar = (vehiculoId: string) => {
     navigate(`/reservar/${vehiculoId}`);
   };
 
   const toggleEstado = async (vehiculo: Vehiculo) => {
-    const nextEstado =
-      vehiculo.estado === "DISPONIBLE"
-        ? "MANTENIMIENTO"
-        : vehiculo.estado === "MANTENIMIENTO"
-        ? "RENTADO"
-        : "DISPONIBLE";
+    try {
+      setUpdatingId(vehiculo.id_vehiculo);
 
-    await VehiculosService.updateEstado(
-      vehiculo.id_vehiculo,
-      nextEstado
-    );
+      const nextEstado =
+        vehiculo.estado === "DISPONIBLE"
+          ? "MANTENIMIENTO"
+          : vehiculo.estado === "MANTENIMIENTO"
+          ? "RENTADO"
+          : "DISPONIBLE";
 
-    loadCars();
+      // ✅ usamos el update normal (NO updateEstado)
+      await VehiculosService.update(vehiculo.id_vehiculo, {
+        estado: nextEstado,
+      });
+
+      await loadCars();
+    } catch (error) {
+      console.error("Error cambiando estado", error);
+      alert("No se pudo cambiar el estado");
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
   const getBadgeClass = (estado: string) => {
@@ -50,7 +65,7 @@ export default function RecommendedCars() {
     }
   };
 
-  /* 🔍 FILTRO POR ROL */
+  // ✅ USER solo ve disponibles
   const visibleVehiculos = isAdmin
     ? vehiculos
     : vehiculos.filter((v) => v.estado === "DISPONIBLE");
@@ -76,13 +91,14 @@ export default function RecommendedCars() {
                   {v.estado}
                 </span>
 
-                {/* 👑 ADMIN */}
+                {/* 👑 ADMIN: cambia estado */}
                 {isAdmin ? (
                   <button
                     className="btn btn-outline-dark mt-auto"
+                    disabled={updatingId === v.id_vehiculo}
                     onClick={() => toggleEstado(v)}
                   >
-                    Cambiar estado
+                    {updatingId === v.id_vehiculo ? "Actualizando..." : "Cambiar estado"}
                   </button>
                 ) : (
                   <button
