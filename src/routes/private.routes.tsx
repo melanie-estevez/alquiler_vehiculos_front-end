@@ -8,7 +8,8 @@ import SucursalesPage from "../pages/private/SucursalesPage";
 import VehiculosPage from "../pages/private/VehiculosPage";
 import ReservasPage from "../pages/private/ReservasPage";
 
-import { Role } from "../utils/roles"; 
+import { Role } from "../utils/roles";
+import MantenimientosPage from "../pages/private/MantenimientosPage";
 
 export const privateRoutes: RouteObject = {
   element: <RequireAuth />,
@@ -47,6 +48,15 @@ export const privateRoutes: RouteObject = {
             </RequireRole>
           ),
         },
+
+        {
+          path: "/admin/mantenimientos",
+          element: (
+            <RequireRole role={Role.ADMIN}>
+              <MantenimientosPage />
+            </RequireRole>
+          ),
+        }
       ],
     },
   ],

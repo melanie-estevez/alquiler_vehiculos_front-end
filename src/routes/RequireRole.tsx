@@ -8,6 +8,7 @@ interface Props {
   children: ReactNode;
 }
 
+
 export default function RequireRole({ role, children }: Props) {
   const { user } = useAuth();
 

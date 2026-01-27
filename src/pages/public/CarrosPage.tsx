@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
+import { VehiculosService, type Vehiculo } from "../../services/vehiculos.service";
 import { useNavigate } from "react-router-dom";
-import {
-  VehiculosService,
-  type Vehiculo,
-} from "../../services/vehiculos.service";
 
 export default function CarrosPage() {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -27,8 +24,20 @@ export default function CarrosPage() {
   }, []);
 
   const handleReservar = (vehiculoId: string) => {
-    // 👉 SOLO NAVEGA
     navigate(`/reservar/${vehiculoId}`);
+  };
+
+  const getBadgeClass = (estado: string) => {
+    switch (estado) {
+      case "DISPONIBLE":
+        return "bg-success";
+      case "MANTENIMIENTO":
+        return "bg-warning text-dark";
+      case "RENTADO":
+        return "bg-danger";
+      default:
+        return "bg-secondary";
+    }
   };
 
   return (
@@ -50,11 +59,9 @@ export default function CarrosPage() {
                   {v.marca} {v.modelo}
                 </h5>
 
-                <p className="card-text text-muted">
-                  Año: {v.anio}
-                </p>
+                <p className="text-muted mb-1">Año: {v.anio}</p>
 
-                <p className="card-text fw-bold">
+                <p className="fw-bold mb-1">
                   ${v.precio_diario} / día
                 </p>
 
@@ -65,11 +72,9 @@ export default function CarrosPage() {
                 )}
 
                 <span
-                  className={`badge align-self-start ${
-                    v.estado === "DISPONIBLE"
-                      ? "bg-success"
-                      : "bg-secondary"
-                  }`}
+                  className={`badge align-self-start mb-2 ${getBadgeClass(
+                    v.estado
+                  )}`}
                 >
                   {v.estado}
                 </span>
