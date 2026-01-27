@@ -7,6 +7,7 @@ import { Role } from "../utils/roles";
 type User = {
   email: string;
   role: Role;
+  id_cliente: string;
 };
 
 type AuthContextType = {
@@ -18,7 +19,7 @@ type AuthContextType = {
   isAdmin: boolean;
 };
 
-const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() =>
@@ -36,7 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const newUser: User = {
       email: payload.email,
-      role: payload.role as Role, // ✔ ahora sí coincide
+      role: payload.role as Role,
+      id_cliente: payload.id_cliente, 
     };
 
     setUser(newUser);

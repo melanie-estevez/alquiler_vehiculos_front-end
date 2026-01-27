@@ -1,4 +1,4 @@
-import {api} from './api';
+import { api } from './api';
 
 export const reservasService = {
   getAll: (params?: any) =>
@@ -9,11 +9,12 @@ export const reservasService = {
 
   create: (data: {
     id_vehiculo: string;
+    id_cliente: string;  
     fecha_inicio: string;
     dias: number;
     fecha_fin: string;
   }) =>
-    api.post('/reservas', data),
+    api.post('/reservas', data),  
 
   update: (id: string, data: any) =>
     api.put(`/reservas/${id}`, data),
