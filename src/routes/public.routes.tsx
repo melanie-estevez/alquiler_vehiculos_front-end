@@ -6,7 +6,7 @@ import Login from "../pages/public/Login";
 import Register from "../pages/public/Register";
 import PublicOnly from "./PublicOnly";
 import ReservaCreatePage from "../pages/public/ReservaCreatePage";
-import ClienteCreatePage from "../pages/public/ClienteCreatePage"; 
+import ClienteCreatePage from "../pages/public/ClienteCreatePage";
 
 const publicRoutes: RouteObject = {
   element: <PublicLayout />,
@@ -14,7 +14,8 @@ const publicRoutes: RouteObject = {
     { path: "/", element: <HomePage /> },
     { path: "/carros", element: <CarrosPage /> },
     { path: "/reservar/:id", element: <ReservaCreatePage /> },
-    { path: "/cliente/create", element: <ClienteCreatePage /> }, 
+    { path: "/cliente/create", element: <ClienteCreatePage /> },
+
     {
       path: "/auth/login",
       element: (

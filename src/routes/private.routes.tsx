@@ -8,6 +8,7 @@ import SucursalesPage from "../pages/private/SucursalesPage";
 import VehiculosPage from "../pages/private/VehiculosPage";
 import ReservasPage from "../pages/private/ReservasPage";
 import MantenimientosPage from "../pages/private/MantenimientosPage";
+import ProfilePage from "../pages/private/ProfilePage";
 
 import { Role } from "../utils/roles";
 
@@ -18,6 +19,8 @@ export const privateRoutes: RouteObject = {
       element: <PublicLayout />,
       children: [
         { path: "/dashboard", element: <DashboardHome /> },
+
+        { path: "/profile", element: <ProfilePage /> },
 
         {
           path: "/admin/sucursales",
