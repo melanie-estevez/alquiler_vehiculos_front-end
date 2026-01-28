@@ -1,6 +1,6 @@
-
 import { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";  
+import { AuthContext } from "../context/AuthContext";
+
 export function useAuth() {
   const ctx = useContext(AuthContext);
 
@@ -8,13 +8,14 @@ export function useAuth() {
     throw new Error("useAuth debe ser usado dentro de un AuthProvider");
   }
 
+  const token = localStorage.getItem("auth_token");
 
   return {
-    user: ctx.user,       
-    token: ctx.token,     
-    login: ctx.login,     
-    register: ctx.register,  
-    logout: ctx.logout,   
-    isAdmin: ctx.isAdmin, 
+    user: ctx.user,
+    token,                 
+    login: ctx.login,
+    register: ctx.register,
+    logout: ctx.logout,
+    isAdmin: ctx.isAdmin,
   };
 }
