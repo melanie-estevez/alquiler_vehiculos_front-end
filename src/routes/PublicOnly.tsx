@@ -7,11 +7,11 @@ export default function PublicOnly({
 }: {
   children: JSX.Element;
 }) {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
+  const token = localStorage.getItem("auth_token");
 
-  
   if (user && token) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
