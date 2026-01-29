@@ -1,24 +1,33 @@
+import { useMemo } from "react";
 import { type Vehiculo } from "../../services/vehiculos.service";
 
 interface Props {
-  vehiculos: Vehiculo[];
+  vehiculos: Vehiculo[] | any;
   isAdmin?: boolean;
   updatingId?: string | null;
 
   onEdit?: (v: Vehiculo) => void;
   onDelete?: (id: string) => void;
 
-  onToggleEstado?: (v: Vehiculo) => void;
+  // ✅ ahora por ID
+  onToggleEstado?: (id: string) => void;
 }
 
 export function VehiculosTable({
-  vehiculos,
+  vehiculos: vehiculosRaw,
   isAdmin = false,
   updatingId = null,
   onEdit,
   onDelete,
   onToggleEstado,
 }: Props) {
+  const vehiculos = useMemo(() => {
+    const v: any = vehiculosRaw;
+    if (Array.isArray(v)) return v as Vehiculo[];
+    if (v && Array.isArray(v.items)) return v.items as Vehiculo[];
+    return [];
+  }, [vehiculosRaw]);
+
   const getBadgeClass = (estado: string) => {
     switch (estado) {
       case "DISPONIBLE":
@@ -31,6 +40,10 @@ export function VehiculosTable({
         return "bg-secondary";
     }
   };
+
+  if (vehiculos.length === 0) {
+    return <p className="text-muted">No hay vehículos para mostrar.</p>;
+  }
 
   return (
     <table className="table table-striped align-middle">
@@ -49,7 +62,7 @@ export function VehiculosTable({
 
       <tbody>
         {vehiculos.map((v) => (
-          <tr key={v.id_vehiculo}>
+          <tr key={`${v.id_vehiculo}-${v.placa}`}>
             <td>{v.marca}</td>
             <td>{v.modelo}</td>
             <td>{v.anio}</td>
@@ -57,9 +70,7 @@ export function VehiculosTable({
             <td>${v.precio_diario}</td>
             <td>{v.sucursal?.nombre || "-"}</td>
             <td>
-              <span className={`badge ${getBadgeClass(v.estado)}`}>
-                {v.estado}
-              </span>
+              <span className={`badge ${getBadgeClass(v.estado)}`}>{v.estado}</span>
             </td>
 
             {isAdmin && (
@@ -69,19 +80,14 @@ export function VehiculosTable({
                     <button
                       className="btn btn-sm btn-outline-dark"
                       disabled={updatingId === v.id_vehiculo}
-                      onClick={() => onToggleEstado(v)}
+                      onClick={() => onToggleEstado(v.id_vehiculo)}
                     >
-                      {updatingId === v.id_vehiculo
-                        ? "Cambiando..."
-                        : "Cambiar estado"}
+                      {updatingId === v.id_vehiculo ? "Cambiando..." : "Cambiar estado"}
                     </button>
                   )}
 
                   {onEdit && (
-                    <button
-                      className="btn btn-sm btn-secondary"
-                      onClick={() => onEdit(v)}
-                    >
+                    <button className="btn btn-sm btn-secondary" onClick={() => onEdit(v)}>
                       Editar
                     </button>
                   )}

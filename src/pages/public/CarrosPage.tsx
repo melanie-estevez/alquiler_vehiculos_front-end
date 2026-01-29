@@ -15,9 +15,10 @@ export default function CarrosPage() {
     try {
       setLoading(true);
       const data = await VehiculosService.getAll();
-      setVehiculos(data);
+      setVehiculos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error cargando vehículos", error);
+      setVehiculos([]);
     } finally {
       setLoading(false);
     }
@@ -42,7 +43,11 @@ export default function CarrosPage() {
           ? "RENTADO"
           : "DISPONIBLE";
 
-      await VehiculosService.update(vehiculo.id_vehiculo, { estado: nextEstado });
+      // ✅ backend exige precio_diario
+      await VehiculosService.update(vehiculo.id_vehiculo, {
+        estado: nextEstado,
+        precio_diario: vehiculo.precio_diario,
+      });
 
       await loadVehiculos();
     } catch (error) {
@@ -66,10 +71,11 @@ export default function CarrosPage() {
     }
   };
 
-  // ✅ USER solo ve DISPONIBLE / ADMIN ve todo
+  const safeVehiculos = Array.isArray(vehiculos) ? vehiculos : [];
+
   const visibleVehiculos = isAdmin
-    ? vehiculos
-    : vehiculos.filter((v) => v.estado === "DISPONIBLE");
+    ? safeVehiculos
+    : safeVehiculos.filter((v) => v.estado === "DISPONIBLE");
 
   return (
     <div className="container mt-5 pt-4">
@@ -77,9 +83,7 @@ export default function CarrosPage() {
 
       {loading && <p>Cargando vehículos...</p>}
 
-      {!loading && visibleVehiculos.length === 0 && (
-        <p>No hay vehículos disponibles</p>
-      )}
+      {!loading && visibleVehiculos.length === 0 && <p>No hay vehículos disponibles</p>}
 
       <div className="row">
         {visibleVehiculos.map((v) => (
@@ -91,10 +95,9 @@ export default function CarrosPage() {
                 </h5>
 
                 <p className="text-muted mb-1">Año: {v.anio}</p>
-
                 <p className="fw-bold mb-1">${v.precio_diario} / día</p>
 
-                {v.sucursal && (
+                {v.sucursal?.ciudad && (
                   <p className="text-muted small mb-2">{v.sucursal.ciudad}</p>
                 )}
 
@@ -102,7 +105,6 @@ export default function CarrosPage() {
                   {v.estado}
                 </span>
 
-                {/* 👑 ADMIN: cambia estado / USER: reservar */}
                 {isAdmin ? (
                   <button
                     className="btn btn-outline-dark w-100 mt-auto"

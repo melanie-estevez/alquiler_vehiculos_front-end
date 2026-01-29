@@ -1,13 +1,14 @@
-// src/pages/public/ClienteCreatePage.tsx
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { clientesService } from "../../services/clientes.service";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ClienteCreatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
 
-  const next = searchParams.get("next"); // ej: /reservar/123
+  const next = searchParams.get("next");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -23,7 +24,6 @@ export default function ClienteCreatePage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -33,15 +33,33 @@ export default function ClienteCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user?.email) {
+      alert("Inicia sesión nuevamente (no se detectó email).");
+      return;
+    }
+
     try {
       setSaving(true);
-      await clientesService.createMe(formData);
-      alert("✅ Cliente creado");
 
-      // vuelve a donde querías reservar
-      if (next) navigate(next, { replace: true });
-      else navigate("/", { replace: true });
-    } catch (err) {
+      const created = await clientesService.create({
+        ...formData,
+        email: user.email, // ✅ backend lo exige
+      });
+
+      // ✅ actualizar auth_user en localStorage para que ya tenga id_cliente
+      const raw = localStorage.getItem("auth_user");
+      if (raw) {
+        const u = JSON.parse(raw);
+        u.id_cliente = created.id_cliente;
+        localStorage.setItem("auth_user", JSON.stringify(u));
+      }
+
+      // ✅ marcamos que ya no debemos “molestar” con /clientes/me cada refresh
+      localStorage.setItem("cliente_checked", "1");
+
+      alert("✅ Cliente creado");
+      navigate(next || "/", { replace: true });
+    } catch (err: any) {
       console.error(err);
       alert("❌ Error al crear cliente");
     } finally {
@@ -56,85 +74,37 @@ export default function ClienteCreatePage() {
       <form onSubmit={handleSubmit} className="shadow p-4 bg-light rounded">
         <div className="form-group">
           <label>Nombre:</label>
-          <input
-            type="text"
-            name="name"
-            className="form-control"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
+          <input type="text" name="name" className="form-control" value={formData.name} onChange={handleChange} required />
         </div>
 
         <div className="form-group mt-3">
           <label>Apellido:</label>
-          <input
-            type="text"
-            name="apellido"
-            className="form-control"
-            value={formData.apellido}
-            onChange={handleChange}
-            required
-          />
+          <input type="text" name="apellido" className="form-control" value={formData.apellido} onChange={handleChange} required />
         </div>
 
         <div className="form-group mt-3">
           <label>Cédula:</label>
-          <input
-            type="text"
-            name="cedula"
-            className="form-control"
-            value={formData.cedula}
-            onChange={handleChange}
-            required
-          />
+          <input type="text" name="cedula" className="form-control" value={formData.cedula} onChange={handleChange} required />
         </div>
 
         <div className="form-group mt-3">
           <label>Celular:</label>
-          <input
-            type="text"
-            name="celular"
-            className="form-control"
-            value={formData.celular}
-            onChange={handleChange}
-            required
-          />
+          <input type="text" name="celular" className="form-control" value={formData.celular} onChange={handleChange} required />
         </div>
 
         <div className="form-group mt-3">
           <label>Fecha de Nacimiento:</label>
-          <input
-            type="date"
-            name="fecha_nacimiento"
-            className="form-control"
-            value={formData.fecha_nacimiento}
-            onChange={handleChange}
-            required
-          />
+          <input type="date" name="fecha_nacimiento" className="form-control" value={formData.fecha_nacimiento} onChange={handleChange} required />
         </div>
 
         <div className="form-check mt-3">
-          <input
-            type="checkbox"
-            name="licencia_conducir"
-            className="form-check-input"
-            checked={formData.licencia_conducir}
-            onChange={handleChange}
-          />
+          <input type="checkbox" name="licencia_conducir" className="form-check-input" checked={formData.licencia_conducir} onChange={handleChange} />
           <label className="form-check-label">Licencia de conducir</label>
         </div>
 
         <div className="form-group mt-3">
           <label>Ciudad:</label>
-          <input
-            type="text"
-            name="ciudad"
-            className="form-control"
-            value={formData.ciudad}
-            onChange={handleChange}
-            required
-          />
+          <input type="text" name="ciudad" className="form-control" value={formData.ciudad} onChange={handleChange} required />
         </div>
 
         <button type="submit" className="btn btn-dark w-100 mt-4" disabled={saving}>

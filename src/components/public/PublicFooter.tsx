@@ -1,19 +1,12 @@
-export default function PublicFooter() {
-  return (
-    <footer className="footer-dark mt-auto">
-      <div className="container py-4">
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
-          <div className="small">
-            © {new Date().getFullYear()} Lumi Rent Car — Todos los derechos reservados
-          </div>
+import type { JSX } from "react";
 
-          <div className="d-flex gap-3 small">
-            <span>Soporte</span>
-            <span>Privacidad</span>
-            <span>Términos</span>
-          </div>
-        </div>
-      </div>
+export default function Footer(): JSX.Element {
+  return (
+    <footer
+      className="text-white text-center py-3 mt-auto"
+      style={{ backgroundColor: "#1f1f1f" }}
+    >
+      <small>© {new Date().getFullYear()} Lumi Rentals. Todos los derechos reservados.</small>
     </footer>
   );
 }

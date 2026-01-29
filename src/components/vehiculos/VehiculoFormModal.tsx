@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { Modal, Button } from "react-bootstrap";
+// src/components/vehiculos/VehiculoFormModal.tsx
+import { useEffect, useMemo, useState } from "react";
+import { Modal, Button, Alert } from "react-bootstrap";
 import {
   type CreateVehiculoDto,
   type UpdateVehiculoDto,
@@ -11,140 +12,120 @@ interface Props {
   show: boolean;
   onClose: () => void;
   vehiculo: Vehiculo | null;
-  onCreate: (data: CreateVehiculoDto) => void;
-  onUpdate: (id: string, data: UpdateVehiculoDto) => void;
+  onCreate: (data: CreateVehiculoDto) => Promise<void>;
+  onUpdate: (id: string, data: UpdateVehiculoDto) => Promise<void>;
 }
 
-export function VehiculoFormModal({
-  show,
-  onClose,
-  vehiculo,
-  onCreate,
-  onUpdate,
-}: Props) {
+export default function VehiculoFormModal({ show, onClose, vehiculo, onCreate, onUpdate }: Props) {
   const { sucursales } = useSucursales();
 
-  const [form, setForm] = useState<CreateVehiculoDto>({
+  const listSucursales = useMemo(() => (Array.isArray(sucursales) ? sucursales : []), [sucursales]);
+
+  const [form, setForm] = useState({
     marca: "",
     modelo: "",
-    anio: new Date().getFullYear(),
+    anio: "",
     placa: "",
-    precio_diario: 0,
+    precio_diario: "",
     id_sucursal: "",
   });
+
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (vehiculo) {
       setForm({
-        marca: vehiculo.marca,
-        modelo: vehiculo.modelo,
-        anio: vehiculo.anio,
-        placa: vehiculo.placa,
-        precio_diario: vehiculo.precio_diario,
-        id_sucursal: vehiculo.sucursal?.id_sucursal || "",
+        marca: vehiculo.marca ?? "",
+        modelo: vehiculo.modelo ?? "",
+        anio: String(vehiculo.anio ?? ""),
+        placa: vehiculo.placa ?? "",
+        precio_diario: String(vehiculo.precio_diario ?? ""),
+        id_sucursal: vehiculo.sucursal?.id_sucursal || (vehiculo as any).id_sucursal || "",
+      });
+    } else {
+      setForm({
+        marca: "",
+        modelo: "",
+        anio: "",
+        placa: "",
+        precio_diario: "",
+        id_sucursal: "",
       });
     }
-  }, [vehiculo]);
+    setError(null);
+  }, [vehiculo, show]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
-  const handleSubmit = () => {
-    if (vehiculo) {
-      onUpdate(vehiculo.id_vehiculo, form);
-    } else {
-      onCreate(form);
+  const handleSubmit = async () => {
+    try {
+      setError(null);
+      setSaving(true);
+
+      const payload: CreateVehiculoDto = {
+        marca: form.marca.trim(),
+        modelo: form.modelo.trim(),
+        placa: form.placa.trim(),
+        anio: Number(form.anio),
+        precio_diario: Number(form.precio_diario),
+        id_sucursal: form.id_sucursal ? form.id_sucursal : undefined,
+      };
+
+      if (!payload.marca || !payload.modelo || !payload.placa || isNaN(payload.anio) || isNaN(payload.precio_diario)) {
+        setError("Completa todos los campos correctamente");
+        return;
+      }
+
+      if (vehiculo) {
+        // tu backend a veces exige precio_diario aunque cambies otra cosa
+        const update: UpdateVehiculoDto = { ...payload };
+        await onUpdate(vehiculo.id_vehiculo, update);
+      } else {
+        await onCreate(payload);
+      }
+
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo guardar el vehículo.");
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   return (
-    <Modal show={show} onHide={onClose}>
+    <Modal show={show} onHide={onClose} backdrop="static" centered>
       <Modal.Header closeButton>
-        <Modal.Title>
-          {vehiculo ? "Editar vehículo" : "Nuevo vehículo"}
-        </Modal.Title>
+        <Modal.Title>{vehiculo ? "Editar vehículo" : "Nuevo vehículo"}</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        <div className="mb-2">
-          <input
-            className="form-control"
-            name="marca"
-            placeholder="Marca"
-            value={form.marca}
-            onChange={handleChange}
-          />
-        </div>
+        {error && <Alert variant="danger">{error}</Alert>}
 
-        <div className="mb-2">
-          <input
-            className="form-control"
-            name="modelo"
-            placeholder="Modelo"
-            value={form.modelo}
-            onChange={handleChange}
-          />
-        </div>
+        <input className="form-control mb-2" name="marca" placeholder="Marca" value={form.marca} onChange={handleChange} />
+        <input className="form-control mb-2" name="modelo" placeholder="Modelo" value={form.modelo} onChange={handleChange} />
+        <input className="form-control mb-2" type="number" name="anio" placeholder="Año" value={form.anio} onChange={handleChange} />
+        <input className="form-control mb-2" name="placa" placeholder="Placa" value={form.placa} onChange={handleChange} />
+        <input className="form-control mb-2" type="number" name="precio_diario" placeholder="Precio diario" value={form.precio_diario} onChange={handleChange} />
 
-        <div className="mb-2">
-          <input
-            className="form-control"
-            type="number"
-            name="anio"
-            placeholder="Año"
-            value={form.anio}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="mb-2">
-          <input
-            className="form-control"
-            name="placa"
-            placeholder="Placa"
-            value={form.placa}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="mb-2">
-          <input
-            className="form-control"
-            type="number"
-            name="precio_diario"
-            placeholder="Precio diario"
-            value={form.precio_diario}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="mb-2">
-          <select
-            className="form-select"
-            name="id_sucursal"
-            value={form.id_sucursal}
-            onChange={handleChange}
-          >
-            <option value="">Seleccione sucursal</option>
-            {sucursales.map((s) => (
-              <option key={s.id_sucursal} value={s.id_sucursal}>
-                {s.nombre} - {s.ciudad}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select className="form-select" name="id_sucursal" value={form.id_sucursal} onChange={handleChange}>
+          <option value="">Sin sucursal</option>
+          {listSucursales.map((s) => (
+            <option key={s.id_sucursal} value={s.id_sucursal}>
+              {s.nombre} - {s.ciudad}
+            </option>
+          ))}
+        </select>
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="secondary" onClick={onClose} disabled={saving}>
           Cancelar
         </Button>
-        <Button variant="primary" onClick={handleSubmit}>
-          Guardar
+        <Button variant="dark" onClick={handleSubmit} disabled={saving}>
+          {saving ? "Guardando..." : "Guardar"}
         </Button>
       </Modal.Footer>
     </Modal>

@@ -5,6 +5,7 @@ function b64urlDecode(input: string): string {
   const pad = "=".repeat((4 - (input.length % 4)) % 4);
   const base64 = (input + pad).replace(/-/g, "+").replace(/_/g, "/");
   const decoded = atob(base64);
+
   try {
     return decodeURIComponent(
       decoded
@@ -17,11 +18,11 @@ function b64urlDecode(input: string): string {
   }
 }
 
-export function decodeJwt(token: string): JwtPayload | null {
+export function decodeJwt<T extends JwtPayload = JwtPayload>(token: string): T | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
-    return JSON.parse(b64urlDecode(parts[1])) as JwtPayload;
+    return JSON.parse(b64urlDecode(parts[1])) as T;
   } catch {
     return null;
   }
