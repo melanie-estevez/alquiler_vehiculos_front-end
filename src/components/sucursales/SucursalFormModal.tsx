@@ -1,90 +1,124 @@
-import { useEffect, useState } from "react";
-import {
-  type CreateSucursalDto,
-  type UpdateSucursalDto,
-  type Sucursal,
-} from "../../services/sucursales.service";
+// src/components/sucursales/SucursalFormModal.tsx
+import { useEffect, useMemo, useState } from "react";
+import type { Sucursal } from "../../services/sucursales.service";
+
+type Form = {
+  nombre: string;
+  ciudad: string;
+  direccion: string;
+  telefono: string;
+};
 
 interface Props {
   show: boolean;
   onClose: () => void;
   sucursal: Sucursal | null;
-  onCreate: (data: CreateSucursalDto) => Promise<void>;
-  onUpdate: (id: string, data: UpdateSucursalDto) => Promise<void>;
+  onCreate: (dto: Form) => Promise<any>;
+  onUpdate: (id: string, dto: Form) => Promise<any>;
 }
 
-export function SucursalFormModal({
-  show,
-  onClose,
-  sucursal,
-  onCreate,
-  onUpdate,
-}: Props) {
-  const [form, setForm] = useState<CreateSucursalDto>({
-    nombre: "",
-    ciudad: "Quito",
-    direccion: "",
-    telefono: "",
-  });
+export function SucursalFormModal({ show, onClose, sucursal, onCreate, onUpdate }: Props) {
+  const isEdit = !!sucursal;
+
+  const initial: Form = useMemo(
+    () => ({
+      nombre: sucursal?.nombre ?? "",
+      ciudad: sucursal?.ciudad ?? "",
+      direccion: sucursal?.direccion ?? "",
+      telefono: sucursal?.telefono ?? "",
+    }),
+    [sucursal]
+  );
+
+  const [form, setForm] = useState<Form>(initial);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (sucursal) {
-      setForm({
-        nombre: sucursal.nombre,
-        ciudad: sucursal.ciudad,
-        direccion: sucursal.direccion,
-        telefono: sucursal.telefono,
-      });
-    }
-  }, [sucursal]);
+    setForm(initial);
+    setError(null);
+  }, [initial, show]);
 
   if (!show) return null;
 
-  const handleSubmit = async (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm((p) => ({ ...p, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    if (sucursal) {
-      await onUpdate(sucursal.id_sucursal, form);
-    } else {
-      await onCreate(form);
+    try {
+      setSaving(true);
+
+      if (!form.nombre || !form.ciudad || !form.direccion || !form.telefono) {
+        setError("Completa todos los campos.");
+        return;
+      }
+
+      if (isEdit && sucursal) await onUpdate(sucursal.id_sucursal, form);
+      else await onCreate(form);
+
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setError("No se pudo guardar la sucursal.");
+    } finally {
+      setSaving(false);
     }
-
-    onClose();
   };
 
   return (
-    <div className="modal d-block bg-dark bg-opacity-50">
-      <div className="modal-dialog">
-        <form onSubmit={handleSubmit} className="modal-content p-3">
-          <h5>{sucursal ? "Editar sucursal" : "Nueva sucursal"}</h5>
+    <div className="modal d-block" tabIndex={-1} style={{ background: "rgba(0,0,0,.5)" }}>
+      <div className="modal-dialog modal-lg modal-dialog-centered">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">{isEdit ? "Editar sucursal" : "Nueva sucursal"}</h5>
+            <button className="btn-close" onClick={onClose} />
+          </div>
 
-          <input
-            className="form-control mb-2"
-            placeholder="Nombre"
-            value={form.nombre}
-            onChange={(e) =>
-              setForm({ ...form, nombre: e.target.value })
-            }
-          />
+          <form onSubmit={handleSubmit}>
+            <div className="modal-body">
+              {error && <div className="alert alert-danger">{error}</div>}
 
-          <input
-            className="form-control mb-2"
-            placeholder="Dirección"
-            value={form.direccion}
-            onChange={(e) =>
-              setForm({ ...form, direccion: e.target.value })
-            }
-          />
+              <div className="mb-3">
+                <label className="form-label">Nombre</label>
+                <input name="nombre" className="form-control" value={form.nombre} onChange={handleChange} />
+              </div>
 
-          <button className="btn btn-primary">Guardar</button>
-          <button
-            type="button"
-            className="btn btn-secondary ms-2"
-            onClick={onClose}
-          >
-            Cancelar
-          </button>
-        </form>
+              <div className="mb-3">
+                <label className="form-label">Ciudad</label>
+                <select name="ciudad" className="form-select" value={form.ciudad} onChange={handleChange}>
+                  <option value="">Seleccione...</option>
+                  <option value="Quito">Quito</option>
+                  <option value="Guayaquil">Guayaquil</option>
+                  <option value="Cuenca">Cuenca</option>
+                </select>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Dirección</label>
+                <input name="direccion" className="form-control" value={form.direccion} onChange={handleChange} />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Teléfono</label>
+                <input name="telefono" className="form-control" value={form.telefono} onChange={handleChange} />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn btn-outline-dark" onClick={onClose} disabled={saving}>
+                Cancelar
+              </button>
+              <button type="submit" className="btn btn-dark" disabled={saving}>
+                {saving ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

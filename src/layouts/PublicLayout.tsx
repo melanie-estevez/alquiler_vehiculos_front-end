@@ -4,16 +4,14 @@ import PublicFooter from "../components/public/PublicFooter";
 
 export default function PublicLayout() {
   return (
-    <div className="min-vh-100 d-flex flex-column">
-    
+    <div className="d-flex flex-column min-vh-100">
       <PublicHeader />
 
-    
-      <main className="flex-grow-1 pt-5">
+      
+      <main className="flex-grow-1 pt-5" style={{ paddingTop: 72 }}>
         <Outlet />
       </main>
 
-      
       <PublicFooter />
     </div>
   );

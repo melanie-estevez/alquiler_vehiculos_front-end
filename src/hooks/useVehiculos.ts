@@ -11,10 +11,20 @@ export function useVehiculos() {
   const [loading, setLoading] = useState(false);
 
   const fetchVehiculos = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await VehiculosService.getAll();
-      setVehiculos(data);
+      const data: any = await VehiculosService.getAll();
+
+      const list = Array.isArray(data)
+        ? (data as Vehiculo[])
+        : Array.isArray(data?.items)
+        ? (data.items as Vehiculo[])
+        : [];
+
+      setVehiculos(list);
+    } catch (e) {
+      console.error("Error cargando vehículos", e);
+      setVehiculos([]);
     } finally {
       setLoading(false);
     }
@@ -45,6 +55,6 @@ export function useVehiculos() {
     createVehiculo,
     updateVehiculo,
     deleteVehiculo,
-    reload: fetchVehiculos, 
+    reload: fetchVehiculos,
   };
 }

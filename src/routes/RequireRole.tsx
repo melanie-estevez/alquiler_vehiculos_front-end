@@ -1,20 +1,24 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import type { ReactNode } from "react";
-import { type Role } from "../utils/roles";
+import type { JSX } from "react";
 
-interface Props {
-  role: Role;
-  children: ReactNode;
-}
+export default function RequireRole({
+  role,
+  children,
+}: {
+  role: "admin" | "user";
+  children: JSX.Element;
+}) {
+  const { user, ready } = useAuth();
 
+  if (!ready) return null;
 
-export default function RequireRole({ role, children }: Props) {
-  const { user } = useAuth();
+  if (!user) return <Navigate to="/auth/login" replace />;
 
-  if (!user || user.role !== role) {
-    return <Navigate to="/dashboard" replace />;
+  // user.role viene del enum Role, pero normalmente es "admin" o "user"
+  if (user.role !== role) {
+    return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>;
+  return children;
 }

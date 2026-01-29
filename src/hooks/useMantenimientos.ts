@@ -1,3 +1,4 @@
+// src/hooks/useMantenimientos.ts
 import { useEffect, useState } from "react";
 import { mantenimientosService, type Mantenimiento } from "../services/mantenimientos.service";
 
@@ -6,10 +7,16 @@ export function useMantenimientos() {
   const [loading, setLoading] = useState(true);
 
   const fetchMantenimientos = async () => {
-    setLoading(true);
-    const data = await mantenimientosService.getAll();
-    setMantenimientos(data);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const data = await mantenimientosService.getAll();
+      setMantenimientos(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e);
+      setMantenimientos([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

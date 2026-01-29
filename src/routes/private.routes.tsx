@@ -10,8 +10,6 @@ import ReservasPage from "../pages/private/ReservasPage";
 import MantenimientosPage from "../pages/private/MantenimientosPage";
 import ProfilePage from "../pages/private/ProfilePage";
 
-import { Role } from "../utils/roles";
-
 export const privateRoutes: RouteObject = {
   element: <RequireAuth />,
   children: [
@@ -19,40 +17,36 @@ export const privateRoutes: RouteObject = {
       element: <PublicLayout />,
       children: [
         { path: "/dashboard", element: <DashboardHome /> },
-
         { path: "/profile", element: <ProfilePage /> },
 
         {
           path: "/admin/sucursales",
           element: (
-            <RequireRole role={Role.ADMIN}>
+            <RequireRole role="admin">
               <SucursalesPage />
             </RequireRole>
           ),
         },
-
         {
           path: "/admin/vehiculos",
           element: (
-            <RequireRole role={Role.ADMIN}>
+            <RequireRole role="admin">
               <VehiculosPage />
             </RequireRole>
           ),
         },
-
         {
           path: "/admin/reservas",
           element: (
-            <RequireRole role={Role.ADMIN}>
+            <RequireRole role="admin">
               <ReservasPage />
             </RequireRole>
           ),
         },
-
         {
           path: "/admin/mantenimientos",
           element: (
-            <RequireRole role={Role.ADMIN}>
+            <RequireRole role="admin">
               <MantenimientosPage />
             </RequireRole>
           ),

@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { useSucursales } from "../../hooks/useSucursales";
 import { SucursalesTable } from "../../components/sucursales/SucursalesTable";
-import { SucursalFormModal } from "../../components/sucursales/SucursalFormModal";
+import {SucursalFormModal} from "../../components/sucursales/SucursalFormModal";
 import { useAuth } from "../../context/AuthContext";
-import { type Sucursal } from "../../services/sucursales.service";
+import type { Sucursal } from "../../services/sucursales.service";
 
 export default function SucursalesPage() {
-  const {
-    sucursales,
-    loading,
-    createSucursal,
-    updateSucursal,
-    deleteSucursal,
-  } = useSucursales();
+  const { sucursales, loading, createSucursal, updateSucursal, deleteSucursal } =
+    useSucursales();
 
   const { isAdmin } = useAuth();
 
@@ -42,10 +37,14 @@ export default function SucursalesPage() {
       ) : (
         <SucursalesTable
           sucursales={sucursales}
-          onEdit={isAdmin ? (s) => {
-            setSelected(s);
-            setShowModal(true);
-          } : undefined}
+          onEdit={
+            isAdmin
+              ? (s) => {
+                  setSelected(s);
+                  setShowModal(true);
+                }
+              : undefined
+          }
           onDelete={isAdmin ? deleteSucursal : undefined}
         />
       )}
