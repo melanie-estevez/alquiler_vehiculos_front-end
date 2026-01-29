@@ -1,76 +1,44 @@
-import { Alert, Button, Card, Form } from "react-bootstrap";
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { loginApi } from "../../services/auth.service";
-
-type LocationState = {
-  from?: string;
-};
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-  const state = (location.state || {}) as LocationState;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await login({ email, password });
 
-    try {
-      setLoading(true);
-      setError(null);
-
-      await loginApi({ email, password });
-
-   
-      navigate(state.from || "/dashboard", { replace: true });
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          "Credenciales inválidas o error del servidor"
-      );
-    } finally {
-      setLoading(false);
-    }
+    
+    navigate("/", { replace: true });
   };
 
   return (
-    <Card className="p-4 mx-auto" style={{ maxWidth: 480 }}>
-      <h3 className="mb-3">Login</h3>
+    <div className="container mt-5 pt-5">
+      <h2>Login</h2>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      <form onSubmit={handleSubmit}>
+        <input
+          className="form-control mb-2"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="correo@ejemplo.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </Form.Group>
+        <input
+          className="form-control mb-2"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-        <Form.Group className="mb-3">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Tu contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </Form.Group>
-
-        <Button type="submit" className="w-100" disabled={loading}>
-          {loading ? "Entrando..." : "Entrar"}
-        </Button>
-      </Form>
-    </Card>
+        <button className="btn btn-dark w-100">Entrar</button>
+      </form>
+    </div>
   );
 }

@@ -3,7 +3,7 @@ import { useVehiculos } from "../../hooks/useVehiculos";
 import { VehiculosTable } from "../../components/vehiculos/VehiculosTable";
 import { VehiculoFormModal } from "../../components/vehiculos/VehiculoFormModal";
 import { useAuth } from "../../context/AuthContext";
-import { type Vehiculo } from "../../services/vehiculos.service";
+import { type Vehiculo, VehiculosService } from "../../services/vehiculos.service";
 
 export default function VehiculosPage() {
   const {
@@ -12,12 +12,41 @@ export default function VehiculosPage() {
     createVehiculo,
     updateVehiculo,
     deleteVehiculo,
+    reload,
   } = useVehiculos();
 
   const { isAdmin } = useAuth();
 
   const [selected, setSelected] = useState<Vehiculo | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const visibleVehiculos = isAdmin
+    ? vehiculos
+    : vehiculos.filter((v) => v.estado === "DISPONIBLE");
+
+  const toggleEstado = async (vehiculo: Vehiculo) => {
+    try {
+      setUpdatingId(vehiculo.id_vehiculo);
+
+      const nextEstado =
+        vehiculo.estado === "DISPONIBLE"
+          ? "MANTENIMIENTO"
+          : vehiculo.estado === "MANTENIMIENTO"
+          ? "RENTADO"
+          : "DISPONIBLE";
+
+
+      await VehiculosService.update(vehiculo.id_vehiculo, { estado: nextEstado });
+
+      await reload();
+    } catch (e) {
+      console.error("Error cambiando estado", e);
+      alert("No se pudo cambiar el estado");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   return (
     <div className="container mt-4">
@@ -41,11 +70,18 @@ export default function VehiculosPage() {
         <p>Cargando...</p>
       ) : (
         <VehiculosTable
-          vehiculos={vehiculos}
-          onEdit={isAdmin ? (v) => {
-            setSelected(v);
-            setShowModal(true);
-          } : undefined}
+          vehiculos={visibleVehiculos}
+          isAdmin={isAdmin}
+          updatingId={updatingId}
+          onToggleEstado={isAdmin ? toggleEstado : undefined}
+          onEdit={
+            isAdmin
+              ? (v) => {
+                  setSelected(v);
+                  setShowModal(true);
+                }
+              : undefined
+          }
           onDelete={isAdmin ? deleteVehiculo : undefined}
         />
       )}

@@ -1,70 +1,44 @@
-import { Alert, Button, Card, Form } from "react-bootstrap";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerApi } from "../../services/auth.service";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Register() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await register({ email, password });
 
-    try {
-      setLoading(true);
-      setError(null);
 
-      await registerApi({ email, password });
-
-    
-      navigate("/auth/login", { replace: true });
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          "No se pudo registrar. Revisa los datos."
-      );
-    } finally {
-      setLoading(false);
-    }
+    navigate("/", { replace: true });
   };
 
   return (
-    <Card className="p-4 mx-auto" style={{ maxWidth: 480 }}>
-      <h3 className="mb-3">Registro</h3>
+    <div className="container mt-5 pt-5">
+      <h2>Register</h2>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      <form onSubmit={handleSubmit}>
+        <input
+          className="form-control mb-2"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="correo@ejemplo.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </Form.Group>
+        <input
+          className="form-control mb-2"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-        <Form.Group className="mb-3">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Mínimo 6 caracteres"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </Form.Group>
-
-        <Button type="submit" className="w-100" disabled={loading}>
-          {loading ? "Registrando..." : "Crear cuenta"}
-        </Button>
-      </Form>
-    </Card>
+        <button className="btn btn-dark w-100">Crear cuenta</button>
+      </form>
+    </div>
   );
 }

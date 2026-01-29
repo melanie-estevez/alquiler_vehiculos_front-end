@@ -1,86 +1,84 @@
-import { createContext, useContext, useMemo, useState } from "react";
-import type { ReactNode } from "react";
-import { loginApi, registerApi } from "../services/auth.service";
-import { decodeJwt } from "../utils/jwt";
-import { Role } from "../utils/roles";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import { api } from "../services/api";
 
 type User = {
   email: string;
-  role: Role;
-  id_cliente: string;
+  role: "admin" | "user";
 };
 
 type AuthContextType = {
   user: User | null;
-  token: string | null;
-  login: (payload: { email: string; password: string }) => Promise<void>;
-  register: (payload: { email: string; password: string }) => Promise<void>;
-  logout: () => void;
   isAdmin: boolean;
+  login: (data: { email: string; password: string }) => Promise<void>;
+  register: (data: { email: string; password: string }) => Promise<void>;
+  logout: () => void;
 };
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthContext = createContext<AuthContextType>(
+  {} as AuthContextType
+);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("auth_token")
-  );
+  const [user, setUser] = useState<User | null>(null);
 
-  const [user, setUser] = useState<User | null>(() => {
-    const raw = localStorage.getItem("auth_user");
-    return raw ? JSON.parse(raw) : null;
-  });
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    const storedUser = localStorage.getItem("auth_user");
+    if (token && storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
-  const saveFromToken = (token: string) => {
-    const payload = decodeJwt(token);
-    if (!payload) return;
+  const login = async (data: { email: string; password: string }) => {
+    const res = await api.post("/auth/login", data);
 
-    const newUser: User = {
-      email: payload.email,
-      role: payload.role as Role,
-      id_cliente: payload.id_cliente, 
-    };
 
-    setUser(newUser);
-    setToken(token);
+    const token = res.data.data.access_token;
 
     localStorage.setItem("auth_token", token);
-    localStorage.setItem("auth_user", JSON.stringify(newUser));
+
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+
+    const userData: User = {
+      email: payload.email,
+      role: payload.role,
+    };
+
+    localStorage.setItem("auth_user", JSON.stringify(userData));
+    setUser(userData);
   };
 
-  const login = async (payload: { email: string; password: string }) => {
-    const token = await loginApi(payload);
-    saveFromToken(token);
-  };
-
-  const register = async (payload: { email: string; password: string }) => {
-    await registerApi(payload);
+  const register = async (data: { email: string; password: string }) => {
+    await api.post("/auth/register", data);
   };
 
   const logout = () => {
-    setUser(null);
-    setToken(null);
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
+    setUser(null);
   };
 
-  const value = useMemo(
-    () => ({
-      user,
-      token,
-      login,
-      register,
-      logout,
-      isAdmin: user?.role === Role.ADMIN,
-    }),
-    [user, token]
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAdmin: user?.role === "admin",
+        login,
+        register,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuth(): AuthContextType {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
-  return ctx;
-}
+export const useAuth = () => useContext(AuthContext);

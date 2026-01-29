@@ -13,9 +13,9 @@ export default function RecommendedCars() {
   const loadCars = async () => {
     try {
       const data = await VehiculosService.getAll();
-      setVehiculos(data.slice(0, 4)); // 4 recomendados
-    } catch (error) {
-      console.error("Error cargando recomendados", error);
+      setVehiculos(data.slice(0, 4));
+    } catch (e) {
+      console.error("Error cargando recomendados", e);
     }
   };
 
@@ -38,14 +38,14 @@ export default function RecommendedCars() {
           ? "RENTADO"
           : "DISPONIBLE";
 
-      // ✅ usamos el update normal (NO updateEstado)
+
       await VehiculosService.update(vehiculo.id_vehiculo, {
         estado: nextEstado,
       });
 
       await loadCars();
-    } catch (error) {
-      console.error("Error cambiando estado", error);
+    } catch (e) {
+      console.error("Error cambiando estado", e);
       alert("No se pudo cambiar el estado");
     } finally {
       setUpdatingId(null);
@@ -65,7 +65,7 @@ export default function RecommendedCars() {
     }
   };
 
-  // ✅ USER solo ve disponibles
+
   const visibleVehiculos = isAdmin
     ? vehiculos
     : vehiculos.filter((v) => v.estado === "DISPONIBLE");
@@ -83,22 +83,19 @@ export default function RecommendedCars() {
                   {v.marca} {v.modelo}
                 </h5>
 
-                <p className="text-muted">
-                  ${v.precio_diario} / día
-                </p>
+                <p className="text-muted">${v.precio_diario} / día</p>
 
                 <span className={`badge mb-2 ${getBadgeClass(v.estado)}`}>
                   {v.estado}
                 </span>
 
-                {/* 👑 ADMIN: cambia estado */}
                 {isAdmin ? (
                   <button
                     className="btn btn-outline-dark mt-auto"
-                    disabled={updatingId === v.id_vehiculo}
                     onClick={() => toggleEstado(v)}
+                    disabled={updatingId === v.id_vehiculo}
                   >
-                    {updatingId === v.id_vehiculo ? "Actualizando..." : "Cambiar estado"}
+                    {updatingId === v.id_vehiculo ? "Cambiando..." : "Cambiar estado"}
                   </button>
                 ) : (
                   <button

@@ -1,91 +1,150 @@
-import { Link } from "react-router-dom";
+import type { JSX } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+
 import logo from "../../assets/logo.png";
 import logoText from "../../assets/logoText.png";
 
-export default function PublicHeader() {
+export default function PublicHeader(): JSX.Element {
   const { user, logout, isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  const onLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   return (
     <nav
-      className="navbar navbar-expand-lg border-bottom"
+      className="navbar navbar-expand-lg navbar-dark fixed-top"
       style={{ backgroundColor: "#000000" }}
     >
-      <div className="container">
-        {/* LOGO */}
+      <div className="container-fluid">
         <Link className="navbar-brand d-flex align-items-center" to="/">
-          <img src={logo} alt="Logo" height="36" className="me-2" />
-          {logoText && (
-            <img src={logoText} alt="RentCar" height="28" />
-          )}
+          <img
+            src={logo}
+            alt="logo"
+            width="60"
+            height="35"
+            className="d-inline-block align-text-top ms-3"
+          />
+          <img
+            src={logoText}
+            alt="logo text"
+            width="100"
+            height="35"
+            className="d-inline-block align-text-top ms-2"
+          />
         </Link>
 
-        <div className="collapse navbar-collapse show">
-          {/* LEFT */}
-          <ul className="navbar-nav me-auto">
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
+
+        <div className="collapse navbar-collapse" id="navbarNav">
+          <ul className="navbar-nav ms-auto align-items-lg-center">
             <li className="nav-item">
-              <Link className="nav-link text-white fw-semibold" to="/">
+              <Link className="nav-link" to="/">
                 Home
               </Link>
             </li>
 
-            {/* 🔐 ADMIN LINKS */}
-            {isAdmin && (
+            <li className="nav-item">
+              <Link className="nav-link" to="/carros">
+                Carros
+              </Link>
+            </li>
+
+
+            {user && isAdmin && (
               <>
                 <li className="nav-item">
-                  <Link
-                    className="nav-link text-white fw-semibold"
-                    to="/admin/vehiculos"
-                  >
-                    Vehículos
-                  </Link>
-                </li>
-
-                <li className="nav-item">
-                  <Link
-                    className="nav-link text-white fw-semibold"
-                    to="/admin/sucursales"
-                  >
+                  <Link className="nav-link" to="/admin/sucursales">
                     Sucursales
                   </Link>
                 </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/admin/vehiculos">
+                    Vehículos
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/admin/reservas">
+                    Reservas
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/admin/mantenimientos">
+                    Mantenimientos
+                  </Link>
+                </li>
               </>
             )}
-          </ul>
 
-          {/* RIGHT */}
-          <div className="d-flex align-items-center gap-3">
+
             {!user ? (
               <>
-                <Link
-                  to="/auth/login"
-                  className="btn btn-outline-light"
-                >
-                  Login
-                </Link>
-
-                <Link
-                  to="/auth/register"
-                  className="btn btn-light fw-semibold"
-                >
-                  Sign Up
-                </Link>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/auth/login">
+                    Login
+                  </Link>
+                </li>
+                <li className="nav-item ms-2">
+                  <Link className="btn btn-outline-light" to="/auth/register">
+                    Sign-up
+                  </Link>
+                </li>
               </>
             ) : (
-              <>
-                <span className="text-white small">
-                  {user.email}
-                </span>
-
+              <li className="nav-item dropdown ms-2">
                 <button
-                  className="btn btn-outline-light"
-                  onClick={logout}
+                  className="btn btn-outline-light dropdown-toggle d-flex align-items-center"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  style={{ borderColor: "#ffffff" }}
                 >
-                  Logout
+                  <span
+                    className="rounded-circle bg-light text-dark d-inline-flex align-items-center justify-content-center me-2"
+                    style={{ width: 28, height: 28, fontWeight: 700 }}
+                    title={user.email}
+                  >
+                    {user.email?.[0]?.toUpperCase()}
+                  </span>
+                  <span className="d-none d-md-inline">{user.email}</span>
                 </button>
-              </>
+
+                <ul className="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => navigate("/profile")}
+                    >
+                      Perfil
+                    </button>
+                  </li>
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
+                  <li>
+                    <button
+                      className="dropdown-item text-danger"
+                      onClick={onLogout}
+                    >
+                      Cerrar sesión
+                    </button>
+                  </li>
+                </ul>
+              </li>
             )}
-          </div>
+          </ul>
         </div>
       </div>
     </nav>

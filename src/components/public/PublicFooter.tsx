@@ -1,18 +1,17 @@
-import type { JSX } from 'react';
-import { FaInstagram, FaFacebookF } from 'react-icons/fa'; 
-
-export default function Footer(): JSX.Element {
+export default function PublicFooter() {
   return (
-    <footer className="bg-dark text-white text-center py-3 fixed-bottom">
-      <div className="container">
-        <p className="mb-1">© 2026 - Todos los derechos reservados</p>
-        <div>
-          <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className="text-white me-3">
-            <FaInstagram size={20} />
-          </a>
-          <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="text-white">
-            <FaFacebookF size={20} />
-          </a>
+    <footer className="footer-dark mt-auto">
+      <div className="container py-4">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+          <div className="small">
+            © {new Date().getFullYear()} Lumi — Todos los derechos reservados
+          </div>
+
+          <div className="d-flex gap-3 small">
+            <span>Soporte</span>
+            <span>Privacidad</span>
+            <span>Términos</span>
+          </div>
         </div>
       </div>
     </footer>
