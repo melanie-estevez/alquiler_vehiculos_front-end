@@ -15,6 +15,13 @@ export interface Reserva {
   };
 }
 
+type BackendPagedResponse<T> = {
+  data?: {
+    items?: T[];
+  };
+  items?: T[];
+};
+
 export function useReservas(params?: {
   page?: number;
   limit?: number;
@@ -27,13 +34,17 @@ export function useReservas(params?: {
     try {
       setLoading(true);
 
-      const res = await reservasService.getAll(params);
+     
+      const res = (await reservasService.getAll(params)) as any as BackendPagedResponse<Reserva>;
 
-      // 📌 Tu backend responde:
-      // data.data.items
-      setReservas(res.data.data.items);
+  
+      const items =
+        (Array.isArray(res) ? res : res?.data?.items || res?.items || []) as Reserva[];
+
+      setReservas(items);
     } catch (error) {
       console.error("Error cargando reservas", error);
+      setReservas([]);
     } finally {
       setLoading(false);
     }
@@ -41,11 +52,12 @@ export function useReservas(params?: {
 
   useEffect(() => {
     fetchReservas();
-  }, []);
+   
+  }, [params?.page, params?.limit, params?.search]);
 
   return {
     reservas,
     loading,
-    reload: fetchReservas, 
+    reload: fetchReservas,
   };
 }

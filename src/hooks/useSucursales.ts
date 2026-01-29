@@ -1,3 +1,4 @@
+// src/hooks/useSucursales.ts
 import { useEffect, useState } from "react";
 import {
   SucursalesService,
@@ -14,7 +15,10 @@ export function useSucursales() {
     setLoading(true);
     try {
       const items = await SucursalesService.getAll();
-      setSucursales(items);
+      setSucursales(Array.isArray(items) ? items : []);
+    } catch (e) {
+      console.error(e);
+      setSucursales([]);
     } finally {
       setLoading(false);
     }
@@ -22,20 +26,17 @@ export function useSucursales() {
 
   const createSucursal = async (payload: CreateSucursalDto) => {
     await SucursalesService.create(payload);
-    fetchSucursales();
+    await fetchSucursales();
   };
 
-  const updateSucursal = async (
-    id_sucursal: string,
-    payload: UpdateSucursalDto
-  ) => {
+  const updateSucursal = async (id_sucursal: string, payload: UpdateSucursalDto) => {
     await SucursalesService.update(id_sucursal, payload);
-    fetchSucursales();
+    await fetchSucursales();
   };
 
   const deleteSucursal = async (id_sucursal: string) => {
     await SucursalesService.remove(id_sucursal);
-    fetchSucursales();
+    await fetchSucursales();
   };
 
   useEffect(() => {

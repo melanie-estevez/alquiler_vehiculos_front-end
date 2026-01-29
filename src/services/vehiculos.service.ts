@@ -1,57 +1,64 @@
+// src/services/vehiculos.service.ts
 import { api } from "./api";
+import { pickItem, pickList } from "./http";
 
-export interface Vehiculo {
+export type Vehiculo = {
   id_vehiculo: string;
   marca: string;
   modelo: string;
   anio: number;
   placa: string;
   precio_diario: number;
-  estado: string;
+  estado: "DISPONIBLE" | "MANTENIMIENTO" | "RENTADO";
   sucursal?: {
     id_sucursal: string;
     nombre: string;
     ciudad: string;
-  };
-}
+  } | null;
 
-export interface CreateVehiculoDto {
+  // a veces backend manda id_sucursal directo:
+  id_sucursal?: string | null;
+
+  // si luego agregas imagen:
+  imagen_url?: string | null;
+};
+
+export type CreateVehiculoDto = {
   marca: string;
   modelo: string;
   anio: number;
   placa: string;
   precio_diario: number;
-  estado?: string;
-  id_sucursal: string;
-}
+  id_sucursal?: string;
+  imagen_url?: string | null;
+};
 
-export interface UpdateVehiculoDto extends Partial<CreateVehiculoDto> {}
+export type UpdateVehiculoDto = Partial<CreateVehiculoDto> & {
+  estado?: Vehiculo["estado"];
+};
 
 export const VehiculosService = {
-  getAll: async (): Promise<Vehiculo[]> => {
-    const res = await api.get("/vehiculos");
-    return res.data.data.items;
+  async getAll(params?: any): Promise<Vehiculo[]> {
+    const res = await api.get("/vehiculos", { params });
+    return pickList<Vehiculo>(res);
   },
 
-  getById: async (id: string): Promise<Vehiculo> => {
+  async getById(id: string): Promise<Vehiculo> {
     const res = await api.get(`/vehiculos/${id}`);
-    return res.data.data;
+    return pickItem<Vehiculo>(res);
   },
 
-  create: async (payload: CreateVehiculoDto): Promise<Vehiculo> => {
+  async create(payload: CreateVehiculoDto): Promise<Vehiculo> {
     const res = await api.post("/vehiculos", payload);
-    return res.data.data;
+    return pickItem<Vehiculo>(res);
   },
 
-  update: async (
-    id: string,
-    payload: UpdateVehiculoDto
-  ): Promise<Vehiculo> => {
+  async update(id: string, payload: UpdateVehiculoDto): Promise<Vehiculo> {
     const res = await api.put(`/vehiculos/${id}`, payload);
-    return res.data.data;
+    return pickItem<Vehiculo>(res);
   },
 
-  remove: async (id: string): Promise<void> => {
+  async remove(id: string): Promise<void> {
     await api.delete(`/vehiculos/${id}`);
   },
 };

@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useVehiculos } from "../../hooks/useVehiculos";
 import { VehiculosTable } from "../../components/vehiculos/VehiculosTable";
-import { VehiculoFormModal } from "../../components/vehiculos/VehiculoFormModal";
+import VehiculoFormModal from "../../components/vehiculos/VehiculoFormModal";
 import { useAuth } from "../../context/AuthContext";
-import { type Vehiculo, VehiculosService } from "../../services/vehiculos.service";
+import type { Vehiculo } from "../../services/vehiculos.service";
+import { VehiculosService } from "../../services/vehiculos.service";
 
 export default function VehiculosPage() {
   const {
-    vehiculos,
+    vehiculos: vehiculosRaw,
     loading,
     createVehiculo,
     updateVehiculo,
@@ -21,24 +22,42 @@ export default function VehiculosPage() {
   const [showModal, setShowModal] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  // ✅ BLINDAJE: vehiculos puede venir como array o como {items:[]}
+  const vehiculos = useMemo(() => {
+    const v: any = vehiculosRaw as any;
+    if (Array.isArray(v)) return v as Vehiculo[];
+    if (v && Array.isArray(v.items)) return v.items as Vehiculo[];
+    return [];
+  }, [vehiculosRaw]);
+
   // ✅ USER solo ve DISPONIBLE
   const visibleVehiculos = isAdmin
     ? vehiculos
     : vehiculos.filter((v) => v.estado === "DISPONIBLE");
 
-  const toggleEstado = async (vehiculo: Vehiculo) => {
+  // ✅ FIX: ahora recibimos SOLO el ID para evitar “cascada”
+  const toggleEstado = async (vehiculoId: string) => {
     try {
-      setUpdatingId(vehiculo.id_vehiculo);
+      setUpdatingId(vehiculoId);
+
+      const current = vehiculos.find((x) => x.id_vehiculo === vehiculoId);
+      if (!current) {
+        alert("Vehículo no encontrado");
+        return;
+      }
 
       const nextEstado =
-        vehiculo.estado === "DISPONIBLE"
+        current.estado === "DISPONIBLE"
           ? "MANTENIMIENTO"
-          : vehiculo.estado === "MANTENIMIENTO"
+          : current.estado === "MANTENIMIENTO"
           ? "RENTADO"
           : "DISPONIBLE";
 
-      // ✅ NO existe updateEstado, usamos update normal
-      await VehiculosService.update(vehiculo.id_vehiculo, { estado: nextEstado });
+      // ✅ Backend exige precio_diario aunque solo cambies estado
+      await VehiculosService.update(vehiculoId, {
+        estado: nextEstado,
+        precio_diario: current.precio_diario,
+      } as any);
 
       await reload();
     } catch (e) {
@@ -71,10 +90,10 @@ export default function VehiculosPage() {
         <p>Cargando...</p>
       ) : (
         <VehiculosTable
-          vehiculos={visibleVehiculos}
+          vehiculos={visibleVehiculos} // ✅ ya es array seguro
           isAdmin={isAdmin}
           updatingId={updatingId}
-          onToggleEstado={isAdmin ? toggleEstado : undefined}
+          onToggleEstado={isAdmin ? toggleEstado : undefined} // ✅ ahora por ID
           onEdit={
             isAdmin
               ? (v) => {
