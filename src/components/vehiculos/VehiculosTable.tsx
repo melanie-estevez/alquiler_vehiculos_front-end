@@ -1,46 +1,108 @@
+import { useMemo } from "react";
 import { type Vehiculo } from "../../services/vehiculos.service";
 
 interface Props {
-  vehiculos: Vehiculo[];
-  onEdit: (v: Vehiculo) => void;
-  onDelete: (id: string) => void;
+  vehiculos: Vehiculo[] | any;
+  isAdmin?: boolean;
+  updatingId?: string | null;
+
+  onEdit?: (v: Vehiculo) => void;
+  onDelete?: (id: string) => void;
+
+  // ✅ ahora por ID
+  onToggleEstado?: (id: string) => void;
 }
 
-export function VehiculosTable({ vehiculos, onEdit, onDelete }: Props) {
+export function VehiculosTable({
+  vehiculos: vehiculosRaw,
+  isAdmin = false,
+  updatingId = null,
+  onEdit,
+  onDelete,
+  onToggleEstado,
+}: Props) {
+  const vehiculos = useMemo(() => {
+    const v: any = vehiculosRaw;
+    if (Array.isArray(v)) return v as Vehiculo[];
+    if (v && Array.isArray(v.items)) return v.items as Vehiculo[];
+    return [];
+  }, [vehiculosRaw]);
+
+  const getBadgeClass = (estado: string) => {
+    switch (estado) {
+      case "DISPONIBLE":
+        return "bg-success";
+      case "MANTENIMIENTO":
+        return "bg-warning text-dark";
+      case "RENTADO":
+        return "bg-danger";
+      default:
+        return "bg-secondary";
+    }
+  };
+
+  if (vehiculos.length === 0) {
+    return <p className="text-muted">No hay vehículos para mostrar.</p>;
+  }
+
   return (
-    <table className="table table-striped">
+    <table className="table table-striped align-middle">
       <thead>
         <tr>
           <th>Marca</th>
           <th>Modelo</th>
           <th>Año</th>
+          <th>Placa</th>
           <th>Precio/día</th>
           <th>Sucursal</th>
-          <th></th>
+          <th>Estado</th>
+          {isAdmin && <th style={{ width: 260 }}>Acciones</th>}
         </tr>
       </thead>
+
       <tbody>
         {vehiculos.map((v) => (
-          <tr key={v.id_vehiculo}>
+          <tr key={`${v.id_vehiculo}-${v.placa}`}>
             <td>{v.marca}</td>
             <td>{v.modelo}</td>
             <td>{v.anio}</td>
+            <td>{v.placa}</td>
             <td>${v.precio_diario}</td>
-            <td>{v.sucursal?.nombre}</td>
+            <td>{v.sucursal?.nombre || "-"}</td>
             <td>
-              <button
-                className="btn btn-sm btn-warning me-2"
-                onClick={() => onEdit(v)}
-              >
-                Editar
-              </button>
-              <button
-                className="btn btn-sm btn-danger"
-                onClick={() => onDelete(v.id_vehiculo)}
-              >
-                Eliminar
-              </button>
+              <span className={`badge ${getBadgeClass(v.estado)}`}>{v.estado}</span>
             </td>
+
+            {isAdmin && (
+              <td>
+                <div className="d-flex gap-2 flex-wrap">
+                  {onToggleEstado && (
+                    <button
+                      className="btn btn-sm btn-outline-dark"
+                      disabled={updatingId === v.id_vehiculo}
+                      onClick={() => onToggleEstado(v.id_vehiculo)}
+                    >
+                      {updatingId === v.id_vehiculo ? "Cambiando..." : "Cambiar estado"}
+                    </button>
+                  )}
+
+                  {onEdit && (
+                    <button className="btn btn-sm btn-secondary" onClick={() => onEdit(v)}>
+                      Editar
+                    </button>
+                  )}
+
+                  {onDelete && (
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => onDelete(v.id_vehiculo)}
+                    >
+                      Eliminar
+                    </button>
+                  )}
+                </div>
+              </td>
+            )}
           </tr>
         ))}
       </tbody>

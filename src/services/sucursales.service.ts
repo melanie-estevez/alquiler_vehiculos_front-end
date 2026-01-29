@@ -1,52 +1,49 @@
+// src/services/sucursales.service.ts
 import { api } from "./api";
+import { pickItem, pickList } from "./http";
 
-export interface Sucursal {
+export type Sucursal = {
   id_sucursal: string;
   nombre: string;
   ciudad: string;
   direccion: string;
   telefono: string;
-}
+  // si luego agregas imagen en backend:
+  imagen_url?: string | null;
+};
 
-export interface CreateSucursalDto {
+export type CreateSucursalDto = {
   nombre: string;
   ciudad: string;
   direccion: string;
   telefono: string;
-}
+  imagen_url?: string | null;
+};
 
-export interface UpdateSucursalDto {
-  nombre?: string;
-  ciudad?: string;
-  direccion?: string;
-  telefono?: string;
-}
+export type UpdateSucursalDto = Partial<CreateSucursalDto>;
 
 export const SucursalesService = {
-  getAll: async (): Promise<Sucursal[]> => {
-    const res = await api.get("/sucursales");
-    return res.data.data.items;
+  async getAll(params?: any): Promise<Sucursal[]> {
+    const res = await api.get("/sucursales", { params });
+    return pickList<Sucursal>(res);
   },
 
-  getById: async (id: string): Promise<Sucursal> => {
+  async getById(id: string): Promise<Sucursal> {
     const res = await api.get(`/sucursales/${id}`);
-    return res.data.data;
+    return pickItem<Sucursal>(res);
   },
 
-  create: async (payload: CreateSucursalDto): Promise<Sucursal> => {
+  async create(payload: CreateSucursalDto): Promise<Sucursal> {
     const res = await api.post("/sucursales", payload);
-    return res.data.data;
+    return pickItem<Sucursal>(res);
   },
 
-  update: async (
-    id: string,
-    payload: UpdateSucursalDto
-  ): Promise<Sucursal> => {
+  async update(id: string, payload: UpdateSucursalDto): Promise<Sucursal> {
     const res = await api.put(`/sucursales/${id}`, payload);
-    return res.data.data;
+    return pickItem<Sucursal>(res);
   },
 
-  remove: async (id: string): Promise<void> => {
+  async remove(id: string): Promise<void> {
     await api.delete(`/sucursales/${id}`);
   },
 };

@@ -12,27 +12,37 @@ export function useVehiculos() {
 
   const fetchVehiculos = async () => {
     setLoading(true);
-    const data = await VehiculosService.getAll();
-    setVehiculos(data);
-    setLoading(false);
+    try {
+      const data: any = await VehiculosService.getAll();
+
+      const list = Array.isArray(data)
+        ? (data as Vehiculo[])
+        : Array.isArray(data?.items)
+        ? (data.items as Vehiculo[])
+        : [];
+
+      setVehiculos(list);
+    } catch (e) {
+      console.error("Error cargando vehículos", e);
+      setVehiculos([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const createVehiculo = async (payload: CreateVehiculoDto) => {
     await VehiculosService.create(payload);
-    fetchVehiculos();
+    await fetchVehiculos();
   };
 
-  const updateVehiculo = async (
-    id: string,
-    payload: UpdateVehiculoDto
-  ) => {
+  const updateVehiculo = async (id: string, payload: UpdateVehiculoDto) => {
     await VehiculosService.update(id, payload);
-    fetchVehiculos();
+    await fetchVehiculos();
   };
 
   const deleteVehiculo = async (id: string) => {
     await VehiculosService.remove(id);
-    fetchVehiculos();
+    await fetchVehiculos();
   };
 
   useEffect(() => {
@@ -45,5 +55,6 @@ export function useVehiculos() {
     createVehiculo,
     updateVehiculo,
     deleteVehiculo,
+    reload: fetchVehiculos,
   };
 }

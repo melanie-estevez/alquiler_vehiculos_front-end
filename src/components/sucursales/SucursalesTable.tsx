@@ -1,16 +1,15 @@
-import { type Sucursal } from "../../services/sucursales.service";
+// src/components/sucursales/SucursalesTable.tsx
+import type { Sucursal } from "../../services/sucursales.service";
 
 interface Props {
   sucursales: Sucursal[];
-  onEdit: (sucursal: Sucursal) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (s: Sucursal) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function SucursalesTable({
-  sucursales,
-  onEdit,
-  onDelete,
-}: Props) {
+export function SucursalesTable({ sucursales, onEdit, onDelete }: Props) {
+  const list = Array.isArray(sucursales) ? sucursales : [];
+
   return (
     <table className="table">
       <thead>
@@ -21,25 +20,26 @@ export function SucursalesTable({
           <th>Acciones</th>
         </tr>
       </thead>
+
       <tbody>
-        {sucursales.map((s) => (
+        {list.map((s) => (
           <tr key={s.id_sucursal}>
             <td>{s.nombre}</td>
             <td>{s.ciudad}</td>
             <td>{s.direccion}</td>
+
             <td>
-              <button
-                className="btn btn-sm btn-warning me-2"
-                onClick={() => onEdit(s)}
-              >
-                Editar
-              </button>
-              <button
-                className="btn btn-sm btn-danger"
-                onClick={() => onDelete(s.id_sucursal)}
-              >
-                Eliminar
-              </button>
+              {onEdit && (
+                <button className="btn btn-sm btn-secondary me-2" onClick={() => onEdit(s)}>
+                  Editar
+                </button>
+              )}
+
+              {onDelete && (
+                <button className="btn btn-sm btn-danger" onClick={() => onDelete(s.id_sucursal)}>
+                  Eliminar
+                </button>
+              )}
             </td>
           </tr>
         ))}

@@ -1,16 +1,7 @@
-import SucursalesPage from "./pages/private/SucursalesPage";
-import VehiculosPage from "./pages/private/VehiculosPage";
-import PublicHeader from "./components/public/PublicHeader";
-import PublicFooter from "./components/public/PublicFooter";
-function App() {
-  return (
-    <div>
-      <PublicHeader />
-      <PublicFooter/>
-      <SucursalesPage />
-      <VehiculosPage />
-    </div>
-  );
-}
+import { useRoutes } from "react-router-dom";
+import { appRoutes } from "./routes";
 
-export default App;
+export default function App() {
+  const element = useRoutes(appRoutes);
+  return element;
+}
