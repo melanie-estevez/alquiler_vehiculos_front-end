@@ -1,4 +1,4 @@
-// src/services/auth.service.ts
+
 import { api } from "./api";
 
 type SuccessResponseDto<T> = {
@@ -25,14 +25,8 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-export async function loginApi(payload: {
-  email: string;
-  password: string;
-}): Promise<string> {
-  const res = await api.post<SuccessResponseDto<AuthTokenData>>(
-    "/auth/login",
-    payload
-  );
+export async function loginApi(payload: { email: string; password: string }): Promise<string> {
+  const res = await api.post<SuccessResponseDto<AuthTokenData>>("/auth/login", payload);
 
   const token = res.data?.data?.access_token;
   if (!token) throw new Error("No token in login response");
@@ -41,24 +35,11 @@ export async function loginApi(payload: {
   return token;
 }
 
-export async function registerApi(payload: {
-  email: string;
-  password: string;
-}): Promise<string> {
-  // Intento 1: si backend devuelve token al registrar
-  const res = await api.post<SuccessResponseDto<AuthTokenData> | any>(
-    "/auth/register",
-    payload
-  );
+export async function registerApi(payload: { email: string; password: string }): Promise<string> {
+  
+  await api.post("/auth/register", payload);
 
-  const token = res?.data?.data?.access_token;
-
-  if (token) {
-    saveToken(token);
-    return token;
-  }
-
-  // Fallback: si register NO devuelve token, hago login automático
-  const loginToken = await loginApi(payload);
-  return loginToken;
+  
+  const token = await loginApi(payload);
+  return token;
 }

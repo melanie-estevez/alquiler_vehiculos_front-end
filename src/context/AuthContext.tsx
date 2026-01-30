@@ -1,157 +1,165 @@
+// src/context/AuthContext.tsx
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
-import { loginApi, registerApi } from "../services/auth.service";
 import { decodeJwt } from "../utils/jwt";
-import { Role } from "../utils/roles";
+import { loginApi, registerApi } from "../services/auth.service";
 import { clientesService } from "../services/clientes.service";
 
-type User = {
+export type AuthUser = {
+  id: string;
   email: string;
-  role: Role;
-  id_cliente?: string | null;
+  role: "admin" | "user";
 };
 
-type AuthContextType = {
-  user: User | null;
+type Credentials = { email: string; password: string };
+
+type AuthContextValue = {
+  user: AuthUser | null;
   token: string | null;
   ready: boolean;
-
-  login: (payload: { email: string; password: string }) => Promise<void>;
-  register: (payload: { email: string; password: string }) => Promise<void>;
-  logout: () => void;
-
   isAdmin: boolean;
+
+  login: (payload: Credentials) => Promise<void>;
+  register: (payload: Credentials) => Promise<void>;
+  logout: () => void;
+  refreshFromToken: () => void;
 };
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("auth_token")
-  );
+const LS_TOKEN = "auth_token";
 
-  const [user, setUser] = useState<User | null>(() => {
-    const raw = localStorage.getItem("auth_user");
-    return raw ? (JSON.parse(raw) as User) : null;
-  });
+// payload real del backend (AuthService): { sub, email, role, exp }
+type JwtPayload = {
+  sub: string;
+  email: string;
+  role: "admin" | "user";
+  exp?: number; // seconds (JWT standard)
+  iat?: number;
+};
 
+function isExpired(payload: JwtPayload) {
+  if (!payload?.exp) return false; // si tu backend no manda exp, no bloqueamos
+  const nowSec = Math.floor(Date.now() / 1000);
+  return payload.exp <= nowSec;
+}
+
+function parseUserFromToken(token: string): AuthUser | null {
+  const payload = decodeJwt<JwtPayload>(token);
+  if (!payload?.sub || !payload?.email || !payload?.role) return null;
+  if (isExpired(payload)) return null;
+
+  return {
+    id: payload.sub,
+    email: payload.email,
+    role: payload.role,
+  };
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
-  const saveFromToken = (jwtToken: string) => {
-    setToken(jwtToken);
-    localStorage.setItem("auth_token", jwtToken);
+  const hardClearAuth = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem(LS_TOKEN);
 
-    const payload = decodeJwt<{ email: string; role: Role }>(jwtToken);
-
-    if (!payload?.email || !payload?.role) {
-      setToken(null);
-      setUser(null);
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("auth_user");
-      throw new Error("Token inválido: no se pudo leer email/role");
-    }
-
-    const nextUser: User = {
-      email: payload.email,
-      role: payload.role,
-      id_cliente: null,
-    };
-
-    setUser(nextUser);
-    localStorage.setItem("auth_user", JSON.stringify(nextUser));
+    // ✅ caches que NO deben quedar entre usuarios/sesiones
+    clientesService.clearCache();
+    localStorage.removeItem("factura_by_reserva");
   };
 
-  // ✅ carga cliente solo si NO es admin
-  const tryLoadCliente = async (jwtToken: string) => {
-    const payload = decodeJwt<{ email: string; role: Role }>(jwtToken);
-    if (!payload?.role) return;
+  const refreshFromToken = () => {
+    const t = localStorage.getItem(LS_TOKEN);
+    if (!t) {
+      setToken(null);
+      setUser(null);
+      return;
+    }
 
-    // admin normalmente no tiene cliente
-    if (payload.role === Role.ADMIN) return;
+    const u = parseUserFromToken(t);
 
-    const me = await clientesService.getCliente(); // ✅ ahora puede ser null
-    if (!me?.id_cliente) return;
+    // ✅ si token es inválido/expirado -> limpiamos
+    if (!u) {
+      hardClearAuth();
+      return;
+    }
 
-    setUser((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev, id_cliente: me.id_cliente };
-      localStorage.setItem("auth_user", JSON.stringify(updated));
-      return updated;
-    });
+    setToken(t);
+    setUser(u);
   };
 
   useEffect(() => {
-    const boot = async () => {
-      const savedToken = localStorage.getItem("auth_token");
-      const savedUser = localStorage.getItem("auth_user");
+    refreshFromToken();
+    setReady(true);
 
-      if (savedToken && !savedUser) {
-        try {
-          saveFromToken(savedToken);
-        } catch {
-          setReady(true);
-          return;
-        }
-      }
-
-      if (savedToken) {
-        try {
-          await tryLoadCliente(savedToken);
-        } catch {
-          // si falla por algo real, no rompemos la app
-        }
-      }
-
-      setReady(true);
+    // ✅ si abres otra pestaña y haces logout/login, sincroniza estado
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === LS_TOKEN) refreshFromToken();
     };
-
-    boot();
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const login = async (payload: { email: string; password: string }) => {
-    const jwtToken = await loginApi(payload);
-    saveFromToken(jwtToken);
+  const isAdmin = useMemo(() => user?.role === "admin", [user?.role]);
 
-    try {
-      await tryLoadCliente(jwtToken);
-    } catch {
-      // no romper login
+  const login = async ({ email, password }: Credentials) => {
+    const t = await loginApi({ email, password });
+
+    localStorage.setItem(LS_TOKEN, t);
+
+    const u = parseUserFromToken(t);
+    if (!u) {
+      // token inválido -> no dejamos sesión “a medias”
+      hardClearAuth();
+      throw new Error("Token inválido devuelto por el backend.");
     }
+
+    setToken(t);
+    setUser(u);
+
+    // ✅ IMPORTANTÍSIMO: si antes cacheaste 404, borra cache al entrar
+    clientesService.clearCache();
   };
 
-  const register = async (payload: { email: string; password: string }) => {
-    await registerApi(payload);
+  const register = async ({ email, password }: Credentials) => {
+    const t = await registerApi({ email, password });
 
-    const jwtToken = await loginApi(payload);
-    saveFromToken(jwtToken);
+    localStorage.setItem(LS_TOKEN, t);
 
-    try {
-      await tryLoadCliente(jwtToken);
-    } catch {
-      // ok
+    const u = parseUserFromToken(t);
+    if (!u) {
+      hardClearAuth();
+      throw new Error("Token inválido devuelto por el backend.");
     }
+
+    setToken(t);
+    setUser(u);
+    clientesService.clearCache();
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
+    hardClearAuth();
   };
 
-  const isAdmin = user?.role === Role.ADMIN;
-
-  const value = useMemo(
-    () => ({ user, token, ready, login, register, logout, isAdmin }),
-    [user, token, ready, isAdmin]
-  );
+  const value: AuthContextValue = {
+    user,
+    token,
+    ready,
+    isAdmin,
+    login,
+    register,
+    logout,
+    refreshFromToken,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 }

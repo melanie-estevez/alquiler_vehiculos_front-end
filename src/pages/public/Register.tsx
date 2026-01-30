@@ -8,17 +8,25 @@ export default function Register() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await register({ email, password });
 
-
-    navigate("/", { replace: true });
+    try {
+      setLoading(true);
+      await register({ email, password });
+      navigate("/", { replace: true });
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || "Error";
+      alert("❌ No se pudo registrar: " + msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="container mt-5 pt-5">
+    <div className="container mt-5 pt-5" style={{ maxWidth: 520 }}>
       <h2>Register</h2>
 
       <form onSubmit={handleSubmit}>
@@ -37,7 +45,9 @@ export default function Register() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button className="btn btn-dark w-100">Crear cuenta</button>
+        <button className="btn btn-dark w-100" disabled={loading}>
+          {loading ? "Creando..." : "Crear cuenta"}
+        </button>
       </form>
     </div>
   );

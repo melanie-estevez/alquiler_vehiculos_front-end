@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSucursales } from "../../hooks/useSucursales";
 import { SucursalesTable } from "../../components/sucursales/SucursalesTable";
-import {SucursalFormModal} from "../../components/sucursales/SucursalFormModal";
+import { SucursalFormModal } from "../../components/sucursales/SucursalFormModal";
 import { useAuth } from "../../context/AuthContext";
 import type { Sucursal } from "../../services/sucursales.service";
 
@@ -9,6 +9,7 @@ export default function SucursalesPage() {
   const { sucursales, loading, createSucursal, updateSucursal, deleteSucursal } =
     useSucursales();
 
+  // ✅ AuthContext nuevo
   const { isAdmin } = useAuth();
 
   const [showModal, setShowModal] = useState(false);

@@ -10,7 +10,11 @@ import ReservasPage from "../pages/private/ReservasPage";
 import MantenimientosPage from "../pages/private/MantenimientosPage";
 import ProfilePage from "../pages/private/ProfilePage";
 
-export const privateRoutes: RouteObject = {
+import AuditoriaReservaPage from "../pages/private/AuditoriaReservaPage";
+import FacturasPage from "../pages/private/FacturasPage";
+import PagosPage from "../pages/private/PagosPage";
+
+export const privateRoutes = {
   element: <RequireAuth />,
   children: [
     {
@@ -19,6 +23,7 @@ export const privateRoutes: RouteObject = {
         { path: "/dashboard", element: <DashboardHome /> },
         { path: "/profile", element: <ProfilePage /> },
 
+        // ADMIN
         {
           path: "/admin/sucursales",
           element: (
@@ -51,7 +56,31 @@ export const privateRoutes: RouteObject = {
             </RequireRole>
           ),
         },
+        {
+          path: "/admin/facturas",
+          element: (
+            <RequireRole role="admin">
+              <FacturasPage />
+            </RequireRole>
+          ),
+        },
+        {
+          path: "/admin/pagos",
+          element: (
+            <RequireRole role="admin">
+              <PagosPage />
+            </RequireRole>
+          ),
+        },
+        {
+          path: "/admin/auditoria",
+          element: (
+            <RequireRole role="admin">
+              <AuditoriaReservaPage />
+            </RequireRole>
+          ),
+        },
       ],
     },
   ],
-};
+} satisfies RouteObject;

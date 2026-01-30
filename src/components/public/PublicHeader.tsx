@@ -15,26 +15,11 @@ export default function PublicHeader(): JSX.Element {
   };
 
   return (
-    <nav
-      className="navbar navbar-expand-lg navbar-dark fixed-top"
-      style={{ backgroundColor: "#000000" }}
-    >
+    <nav className="navbar navbar-expand-lg navbar-dark fixed-top" style={{ backgroundColor: "#000000" }}>
       <div className="container-fluid">
         <Link className="navbar-brand d-flex align-items-center" to="/">
-          <img
-            src={logo}
-            alt="logo"
-            width="60"
-            height="35"
-            className="d-inline-block align-text-top ms-3"
-          />
-          <img
-            src={logoText}
-            alt="logo text"
-            width="100"
-            height="35"
-            className="d-inline-block align-text-top ms-2"
-          />
+          <img src={logo} alt="logo" width="60" height="35" className="d-inline-block align-text-top ms-3" />
+          <img src={logoText} alt="logo text" width="100" height="35" className="d-inline-block align-text-top ms-2" />
         </Link>
 
         <button
@@ -50,68 +35,66 @@ export default function PublicHeader(): JSX.Element {
         </button>
 
         <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav me-auto align-items-lg-center nav-left">
+          <ul className="navbar-nav ms-auto align-items-lg-center">
             <li className="nav-item">
-              <Link className="nav-link nav-link-hover" to="/">
-                Home
-              </Link>
+              <Link className="nav-link" to="/">Home</Link>
             </li>
 
             <li className="nav-item">
-              <Link className="nav-link nav-link-hover" to="/carros">
-                Vehículos
-              </Link>
+              <Link className="nav-link" to="/carros">Carros</Link>
             </li>
 
+            {/* USER */}
+            {user && !isAdmin && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/mis-reservas">Mis Reservas</Link>
+              </li>
+            )}
+
+            {/* ADMIN */}
             {user && isAdmin && (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link nav-link-hover" to="/admin/sucursales">
-                    Sucursales
-                  </Link>
+                  <Link className="nav-link" to="/admin/sucursales">Sucursales</Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link nav-link-hover" to="/admin/vehiculos">
-                    Vehículos
-                  </Link>
+                  <Link className="nav-link" to="/admin/vehiculos">Vehículos</Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link nav-link-hover" to="/admin/reservas">
-                    Reservas
-                  </Link>
+                  <Link className="nav-link" to="/admin/reservas">Reservas</Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link nav-link-hover" to="/admin/mantenimientos">
-                    Mantenimientos
-                  </Link>
+                  <Link className="nav-link" to="/admin/mantenimientos">Mantenimientos</Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/admin/facturas">Facturas</Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/admin/pagos">Pagos</Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/admin/auditoria">Auditoría</Link>
                 </li>
               </>
             )}
-          </ul>
 
-
-          <ul className="navbar-nav ms-auto align-items-lg-center nav-right">
+            {/* AUTH */}
             {!user ? (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link nav-link-hover" to="/auth/login">
-                    Iniciar sesión
-                  </Link>
+                  <Link className="nav-link" to="/auth/login">Login</Link>
                 </li>
-
-                <li className="nav-item">
-                  <Link className="nav-link nav-pill" to="/auth/register">
-                    Registrate
-                  </Link>
+                <li className="nav-item ms-2">
+                  <Link className="btn btn-outline-light" to="/auth/register">Sign-up</Link>
                 </li>
               </>
             ) : (
-              <li className="nav-item dropdown">
+              <li className="nav-item dropdown ms-2">
                 <button
-                  className="nav-link nav-pill dropdown-toggle d-flex align-items-center"
+                  className="btn btn-outline-light dropdown-toggle d-flex align-items-center"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
-                  style={{ border: "1px solid rgba(255,255,255,.55)" }}
+                  style={{ borderColor: "#ffffff" }}
                 >
                   <span
                     className="rounded-circle bg-light text-dark d-inline-flex align-items-center justify-content-center me-2"

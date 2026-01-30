@@ -16,6 +16,7 @@ export default function VehiculosPage() {
     reload,
   } = useVehiculos();
 
+  // ✅ AuthContext nuevo
   const { isAdmin } = useAuth();
 
   const [selected, setSelected] = useState<Vehiculo | null>(null);
@@ -35,7 +36,7 @@ export default function VehiculosPage() {
     ? vehiculos
     : vehiculos.filter((v) => v.estado === "DISPONIBLE");
 
-  // ✅ FIX: ahora recibimos SOLO el ID para evitar “cascada”
+  // ✅ FIX: recibimos SOLO el ID para evitar “cascada”
   const toggleEstado = async (vehiculoId: string) => {
     try {
       setUpdatingId(vehiculoId);
@@ -90,10 +91,10 @@ export default function VehiculosPage() {
         <p>Cargando...</p>
       ) : (
         <VehiculosTable
-          vehiculos={visibleVehiculos} // ✅ ya es array seguro
+          vehiculos={visibleVehiculos}
           isAdmin={isAdmin}
           updatingId={updatingId}
-          onToggleEstado={isAdmin ? toggleEstado : undefined} // ✅ ahora por ID
+          onToggleEstado={isAdmin ? toggleEstado : undefined}
           onEdit={
             isAdmin
               ? (v) => {
