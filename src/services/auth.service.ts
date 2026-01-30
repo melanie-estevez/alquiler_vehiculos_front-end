@@ -1,4 +1,4 @@
-// src/services/auth.service.ts
+
 import { api } from "./api";
 
 type SuccessResponseDto<T> = {
@@ -36,10 +36,10 @@ export async function loginApi(payload: { email: string; password: string }): Pr
 }
 
 export async function registerApi(payload: { email: string; password: string }): Promise<string> {
-  // backend: POST /auth/register devuelve user, NO token
+  
   await api.post("/auth/register", payload);
 
-  // ✅ entonces hago login automático
+  
   const token = await loginApi(payload);
   return token;
 }

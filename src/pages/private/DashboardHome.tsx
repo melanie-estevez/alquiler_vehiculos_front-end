@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function DashboardHome() {
-  const { user, isAdmin } = useAuth(); // ✅ usamos lo que YA existe
+  const { user, isAdmin } = useAuth(); 
 
   return (
     <div className="container mt-5 pt-4">
