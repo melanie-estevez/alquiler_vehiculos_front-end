@@ -12,7 +12,6 @@ export default function MantenimientosPage() {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [showForm, setShowForm] = useState(false);
 
-  // ✅ MODO EDICIÓN
   const [editing, setEditing] = useState<Mantenimiento | null>(null);
 
   const [idVehiculo, setIdVehiculo] = useState("");

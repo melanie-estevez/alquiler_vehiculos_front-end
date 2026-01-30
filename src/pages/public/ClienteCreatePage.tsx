@@ -43,10 +43,9 @@ export default function ClienteCreatePage() {
 
       const created = await clientesService.create({
         ...formData,
-        email: user.email, // ✅ backend lo exige
+        email: user.email, 
       });
 
-      // ✅ actualizar auth_user en localStorage para que ya tenga id_cliente
       const raw = localStorage.getItem("auth_user");
       if (raw) {
         const u = JSON.parse(raw);
@@ -54,7 +53,6 @@ export default function ClienteCreatePage() {
         localStorage.setItem("auth_user", JSON.stringify(u));
       }
 
-      // ✅ marcamos que ya no debemos “molestar” con /clientes/me cada refresh
       localStorage.setItem("cliente_checked", "1");
 
       alert("✅ Cliente creado");

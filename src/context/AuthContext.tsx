@@ -61,15 +61,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("auth_user", JSON.stringify(nextUser));
   };
 
-  // ✅ carga cliente solo si NO es admin
   const tryLoadCliente = async (jwtToken: string) => {
     const payload = decodeJwt<{ email: string; role: Role }>(jwtToken);
     if (!payload?.role) return;
 
-    // admin normalmente no tiene cliente
     if (payload.role === Role.ADMIN) return;
 
-    const me = await clientesService.getCliente(); // ✅ ahora puede ser null
+    const me = await clientesService.getCliente(); 
     if (!me?.id_cliente) return;
 
     setUser((prev) => {
@@ -98,7 +96,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           await tryLoadCliente(savedToken);
         } catch {
-          // si falla por algo real, no rompemos la app
         }
       }
 
@@ -106,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     boot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = async (payload: { email: string; password: string }) => {
@@ -116,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await tryLoadCliente(jwtToken);
     } catch {
-      // no romper login
     }
   };
 
@@ -129,7 +124,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await tryLoadCliente(jwtToken);
     } catch {
-      // ok
     }
   };
 

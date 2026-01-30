@@ -13,7 +13,6 @@ export default function Register() {
     e.preventDefault();
     await register({ email, password });
 
-    // ✅ luego de registrar → home
     navigate("/", { replace: true });
   };
 
