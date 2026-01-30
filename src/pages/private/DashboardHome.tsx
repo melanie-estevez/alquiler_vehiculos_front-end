@@ -30,7 +30,6 @@ export default function DashboardHome() {
           <Link className="btn btn-dark" to="/carros">
             Ver carros disponibles
           </Link>
-          {/* luego aquí pones "Mis reservas" */}
         </div>
       )}
     </div>

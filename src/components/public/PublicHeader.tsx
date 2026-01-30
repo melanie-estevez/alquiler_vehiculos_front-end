@@ -50,66 +50,68 @@ export default function PublicHeader(): JSX.Element {
         </button>
 
         <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto align-items-lg-center">
+          <ul className="navbar-nav me-auto align-items-lg-center nav-left">
             <li className="nav-item">
-              <Link className="nav-link" to="/">
+              <Link className="nav-link nav-link-hover" to="/">
                 Home
               </Link>
             </li>
 
             <li className="nav-item">
-              <Link className="nav-link" to="/carros">
-                Carros
+              <Link className="nav-link nav-link-hover" to="/carros">
+                Vehículos
               </Link>
             </li>
 
-            {/* ADMIN MENU */}
             {user && isAdmin && (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/admin/sucursales">
+                  <Link className="nav-link nav-link-hover" to="/admin/sucursales">
                     Sucursales
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/admin/vehiculos">
+                  <Link className="nav-link nav-link-hover" to="/admin/vehiculos">
                     Vehículos
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/admin/reservas">
+                  <Link className="nav-link nav-link-hover" to="/admin/reservas">
                     Reservas
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/admin/mantenimientos">
+                  <Link className="nav-link nav-link-hover" to="/admin/mantenimientos">
                     Mantenimientos
                   </Link>
                 </li>
               </>
             )}
+          </ul>
 
-            {/* AUTH BUTTONS */}
+
+          <ul className="navbar-nav ms-auto align-items-lg-center nav-right">
             {!user ? (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/auth/login">
-                    Login
+                  <Link className="nav-link nav-link-hover" to="/auth/login">
+                    Iniciar sesión
                   </Link>
                 </li>
-                <li className="nav-item ms-2">
-                  <Link className="btn btn-outline-light" to="/auth/register">
-                    Sign-up
+
+                <li className="nav-item">
+                  <Link className="nav-link nav-pill" to="/auth/register">
+                    Registrate
                   </Link>
                 </li>
               </>
             ) : (
-              <li className="nav-item dropdown ms-2">
+              <li className="nav-item dropdown">
                 <button
-                  className="btn btn-outline-light dropdown-toggle d-flex align-items-center"
+                  className="nav-link nav-pill dropdown-toggle d-flex align-items-center"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
-                  style={{ borderColor: "#ffffff" }}
+                  style={{ border: "1px solid rgba(255,255,255,.55)" }}
                 >
                   <span
                     className="rounded-circle bg-light text-dark d-inline-flex align-items-center justify-content-center me-2"
@@ -123,21 +125,13 @@ export default function PublicHeader(): JSX.Element {
 
                 <ul className="dropdown-menu dropdown-menu-end">
                   <li>
-                    <button
-                      className="dropdown-item"
-                      onClick={() => navigate("/profile")}
-                    >
+                    <button className="dropdown-item" onClick={() => navigate("/profile")}>
                       Perfil
                     </button>
                   </li>
+                  <li><hr className="dropdown-divider" /></li>
                   <li>
-                    <hr className="dropdown-divider" />
-                  </li>
-                  <li>
-                    <button
-                      className="dropdown-item text-danger"
-                      onClick={onLogout}
-                    >
+                    <button className="dropdown-item text-danger" onClick={onLogout}>
                       Cerrar sesión
                     </button>
                   </li>
