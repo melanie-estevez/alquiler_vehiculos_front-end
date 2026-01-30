@@ -1,4 +1,3 @@
-// src/services/clientes.service.ts
 import { api } from "./api";
 import { pickItem } from "./http";
 
@@ -18,7 +17,7 @@ export type CreateClienteDto = {
   name: string;
   apellido: string;
   cedula: string;
-  email: string; // ✅ requerido
+  email: string; 
   celular: string;
   fecha_nacimiento: string;
   licencia_conducir: boolean;
@@ -31,13 +30,13 @@ export const clientesService = {
       const res = await api.get("/clientes/me");
       return pickItem<ClienteMe>(res);
     } catch (err: any) {
-      if (err?.response?.status === 404) return null; // normal si no existe aún
+      if (err?.response?.status === 404) return null;
       throw err;
     }
   },
 
   async create(payload: CreateClienteDto): Promise<ClienteMe> {
-    const res = await api.post("/clientes/me", payload); // ✅ FIX ENDPOINT
+    const res = await api.post("/clientes/me", payload); 
     return pickItem<ClienteMe>(res);
   },
 };

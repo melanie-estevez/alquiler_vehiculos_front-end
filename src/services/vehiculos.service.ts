@@ -1,4 +1,3 @@
-// src/services/vehiculos.service.ts
 import { api } from "./api";
 import { pickItem, pickList } from "./http";
 
@@ -16,10 +15,7 @@ export type Vehiculo = {
     ciudad: string;
   } | null;
 
-  // a veces backend manda id_sucursal directo:
   id_sucursal?: string | null;
-
-  // si luego agregas imagen:
   imagen_url?: string | null;
 };
 

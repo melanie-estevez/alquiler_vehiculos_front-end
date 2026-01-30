@@ -1,4 +1,3 @@
-// src/services/sucursales.service.ts
 import { api } from "./api";
 import { pickItem, pickList } from "./http";
 
@@ -8,7 +7,6 @@ export type Sucursal = {
   ciudad: string;
   direccion: string;
   telefono: string;
-  // si luego agregas imagen en backend:
   imagen_url?: string | null;
 };
 

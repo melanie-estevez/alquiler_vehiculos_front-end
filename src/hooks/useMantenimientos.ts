@@ -1,4 +1,3 @@
-// src/hooks/useMantenimientos.ts
 import { useEffect, useState } from "react";
 import { mantenimientosService, type Mantenimiento } from "../services/mantenimientos.service";
 

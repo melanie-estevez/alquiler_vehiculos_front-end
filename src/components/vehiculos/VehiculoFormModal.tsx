@@ -1,4 +1,3 @@
-// src/components/vehiculos/VehiculoFormModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Button, Alert } from "react-bootstrap";
 import {
@@ -79,7 +78,6 @@ export default function VehiculoFormModal({ show, onClose, vehiculo, onCreate, o
       }
 
       if (vehiculo) {
-        // tu backend a veces exige precio_diario aunque cambies otra cosa
         const update: UpdateVehiculoDto = { ...payload };
         await onUpdate(vehiculo.id_vehiculo, update);
       } else {

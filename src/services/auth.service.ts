@@ -1,4 +1,3 @@
-// src/services/auth.service.ts
 import { api } from "./api";
 
 type SuccessResponseDto<T> = {
@@ -45,7 +44,6 @@ export async function registerApi(payload: {
   email: string;
   password: string;
 }): Promise<string> {
-  // Intento 1: si backend devuelve token al registrar
   const res = await api.post<SuccessResponseDto<AuthTokenData> | any>(
     "/auth/register",
     payload
@@ -58,7 +56,6 @@ export async function registerApi(payload: {
     return token;
   }
 
-  // Fallback: si register NO devuelve token, hago login automático
   const loginToken = await loginApi(payload);
   return loginToken;
 }

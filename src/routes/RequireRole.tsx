@@ -15,7 +15,6 @@ export default function RequireRole({
 
   if (!user) return <Navigate to="/auth/login" replace />;
 
-  // user.role viene del enum Role, pero normalmente es "admin" o "user"
   if (user.role !== role) {
     return <Navigate to="/" replace />;
   }

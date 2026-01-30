@@ -43,7 +43,6 @@ export default function CarrosPage() {
           ? "RENTADO"
           : "DISPONIBLE";
 
-      // ✅ backend exige precio_diario
       await VehiculosService.update(vehiculo.id_vehiculo, {
         estado: nextEstado,
         precio_diario: vehiculo.precio_diario,

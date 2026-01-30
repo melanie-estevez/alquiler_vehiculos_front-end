@@ -1,4 +1,3 @@
-// src/services/mantenimientos.service.ts
 import { api } from "./api";
 import { pickItem, pickList } from "./http";
 

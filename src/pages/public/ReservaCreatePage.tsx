@@ -31,7 +31,6 @@ export default function ReservaCreatePage() {
   useEffect(() => {
     if (!ready) return;
 
-    // si no estás logueado -> login
     if (!user) {
       navigate("/auth/login", { replace: true });
       return;
@@ -70,7 +69,6 @@ export default function ReservaCreatePage() {
         return;
       }
 
-      // Opcional: si no está disponible, no dejes reservar
       if (vehiculo.estado !== "DISPONIBLE") {
         alert("❌ Este vehículo no está disponible para reservar.");
         return;

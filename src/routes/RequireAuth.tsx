@@ -5,7 +5,6 @@ export default function RequireAuth() {
   const { user, token, ready } = useAuth();
   const location = useLocation();
 
-  // evita parpadeo al recargar
   if (!ready) return null;
 
   if (!user || !token) {
