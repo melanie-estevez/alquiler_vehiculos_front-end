@@ -9,7 +9,7 @@ export default function CarrosPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { ready, isAdmin } = useAuth();
 
   const loadVehiculos = async () => {
     try {
@@ -25,8 +25,11 @@ export default function CarrosPage() {
   };
 
   useEffect(() => {
+    // si quieres que sin login se vean vehículos igual, no dependas de ready
+    if (!ready) return;
     loadVehiculos();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   const handleReservar = (vehiculoId: string) => {
     navigate(`/reservar/${vehiculoId}`);
@@ -43,9 +46,9 @@ export default function CarrosPage() {
           ? "RENTADO"
           : "DISPONIBLE";
 
-      // ✅ backend exige precio_diario
       await VehiculosService.update(vehiculo.id_vehiculo, {
         estado: nextEstado,
+        // backend exige precio_diario
         precio_diario: vehiculo.precio_diario,
       });
 
@@ -72,7 +75,6 @@ export default function CarrosPage() {
   };
 
   const safeVehiculos = Array.isArray(vehiculos) ? vehiculos : [];
-
   const visibleVehiculos = isAdmin
     ? safeVehiculos
     : safeVehiculos.filter((v) => v.estado === "DISPONIBLE");
@@ -83,7 +85,9 @@ export default function CarrosPage() {
 
       {loading && <p>Cargando vehículos...</p>}
 
-      {!loading && visibleVehiculos.length === 0 && <p>No hay vehículos disponibles</p>}
+      {!loading && visibleVehiculos.length === 0 && (
+        <p>No hay vehículos disponibles</p>
+      )}
 
       <div className="row">
         {visibleVehiculos.map((v) => (

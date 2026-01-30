@@ -1,10 +1,8 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { Role } from "../../utils/roles";
 
 export default function DashboardHome() {
-  const { user } = useAuth();
-  const isAdmin = user?.role === Role.ADMIN;
+  const { user, isAdmin } = useAuth(); // ✅ usamos lo que YA existe
 
   return (
     <div className="container mt-5 pt-4">
@@ -15,12 +13,15 @@ export default function DashboardHome() {
           <Link className="btn btn-dark" to="/admin/sucursales">
             Gestionar Sucursales
           </Link>
+
           <Link className="btn btn-dark" to="/admin/vehiculos">
             Gestionar Vehículos
           </Link>
+
           <Link className="btn btn-dark" to="/admin/reservas">
             Gestionar Reservas
           </Link>
+
           <Link className="btn btn-dark" to="/admin/mantenimientos">
             Gestionar Mantenimientos
           </Link>
@@ -30,7 +31,16 @@ export default function DashboardHome() {
           <Link className="btn btn-dark" to="/carros">
             Ver carros disponibles
           </Link>
-          {/* luego aquí pones "Mis reservas" */}
+
+          <Link className="btn btn-dark" to="/mis-reservas">
+            Mis reservas
+          </Link>
+        </div>
+      )}
+
+      {!user && (
+        <div className="alert alert-warning mt-3">
+          Debes iniciar sesión para acceder al dashboard.
         </div>
       )}
     </div>

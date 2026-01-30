@@ -1,49 +1,16 @@
 import { useEffect, useState } from "react";
-import { reservasService } from "../services/reservas.service";
+import { reservasService, type Reserva } from "../services/reservas.service";
 
-export interface Reserva {
-  id_reserva: string;
-  fecha_inicio: string;
-  fecha_fin: string;
-  dias: number;
-  estado: "pendiente" | "confirmado" | "cancelado";
-  vehiculo: {
-    id_vehiculo: string;
-    marca: string;
-    modelo: string;
-    placa: string;
-  };
-}
-
-type BackendPagedResponse<T> = {
-  data?: {
-    items?: T[];
-  };
-  items?: T[];
-};
-
-export function useReservas(params?: {
-  page?: number;
-  limit?: number;
-  search?: string;
-}) {
+export function useReservas(params?: { page?: number; limit?: number; search?: string }) {
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchReservas = async () => {
     try {
       setLoading(true);
-
-     
-      const res = (await reservasService.getAll(params)) as any as BackendPagedResponse<Reserva>;
-
-  
-      const items =
-        (Array.isArray(res) ? res : res?.data?.items || res?.items || []) as Reserva[];
-
+      const items = await reservasService.getAllItems(params);
       setReservas(items);
-    } catch (error) {
-      console.error("Error cargando reservas", error);
+    } catch {
       setReservas([]);
     } finally {
       setLoading(false);
@@ -52,7 +19,6 @@ export function useReservas(params?: {
 
   useEffect(() => {
     fetchReservas();
-   
   }, [params?.page, params?.limit, params?.search]);
 
   return {
@@ -60,4 +26,27 @@ export function useReservas(params?: {
     loading,
     reload: fetchReservas,
   };
+}
+
+export function useMisReservas(params?: { page?: number; limit?: number }) {
+  const [reservas, setReservas] = useState<Reserva[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const fetchMine = async () => {
+    try {
+      setLoading(true);
+      const items = await reservasService.getMineItems(params);
+      setReservas(items);
+    } catch {
+      setReservas([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMine();
+  }, [params?.page, params?.limit]);
+
+  return { reservas, loading, reload: fetchMine };
 }
