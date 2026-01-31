@@ -18,8 +18,7 @@ export default function Register() {
       await register({ email, password });
       navigate("/", { replace: true });
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || "Error";
-      alert("No se pudo registrar: " + msg);
+      alert("No se pudo registrar: La contraseña debe tener una longitud mínima de 6 caracteres." );
     } finally {
       setLoading(false);
     }
