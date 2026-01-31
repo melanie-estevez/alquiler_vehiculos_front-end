@@ -27,11 +27,13 @@ export const pagosService = {
     return pickItem<Pago>(res);
   },
 
-  async create(dto: CreatePagoDto): Promise<Pago> {
-    const res = await api.post("/pagos", {
-      id_factura: dto.id_factura,
-      metodo: dto.metodo,
-    });
+  async create(dto: any): Promise<Pago> {
+    const payload: CreatePagoDto = {
+      id_factura: String(dto?.id_factura ?? ""),
+      metodo: String(dto?.metodo ?? ""),
+    };
+
+    const res = await api.post("/pagos", payload);
     return pickItem<Pago>(res);
   },
 };
