@@ -41,17 +41,17 @@ export default function PublicHeader(): JSX.Element {
             </li>
 
             <li className="nav-item">
-              <Link className="nav-link" to="/carros">Carros</Link>
+              <Link className="nav-link" to="/carros">Catálogo de Vehículos</Link>
             </li>
 
-            {/* USER */}
+
             {user && !isAdmin && (
               <li className="nav-item">
                 <Link className="nav-link" to="/mis-reservas">Mis Reservas</Link>
               </li>
             )}
 
-            {/* ADMIN */}
+
             {user && isAdmin && (
               <>
                 <li className="nav-item">
@@ -78,14 +78,13 @@ export default function PublicHeader(): JSX.Element {
               </>
             )}
 
-            {/* AUTH */}
             {!user ? (
               <>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/auth/login">Login</Link>
+                  <Link className="nav-link" to="/auth/login">Iniciar Sesión</Link>
                 </li>
                 <li className="nav-item ms-2">
-                  <Link className="btn btn-outline-light" to="/auth/register">Sign-up</Link>
+                  <Link className="btn btn-outline-light" to="/auth/register">Regístrate</Link>
                 </li>
               </>
             ) : (

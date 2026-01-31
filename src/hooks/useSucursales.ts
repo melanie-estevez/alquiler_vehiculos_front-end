@@ -1,4 +1,4 @@
-// src/hooks/useSucursales.ts
+
 import { useEffect, useState } from "react";
 import {
   SucursalesService,

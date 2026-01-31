@@ -16,14 +16,14 @@ export default function VehiculosPage() {
     reload,
   } = useVehiculos();
 
-  // ✅ AuthContext nuevo
+
   const { isAdmin } = useAuth();
 
   const [selected, setSelected] = useState<Vehiculo | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // ✅ BLINDAJE: vehiculos puede venir como array o como {items:[]}
+
   const vehiculos = useMemo(() => {
     const v: any = vehiculosRaw as any;
     if (Array.isArray(v)) return v as Vehiculo[];
@@ -31,12 +31,12 @@ export default function VehiculosPage() {
     return [];
   }, [vehiculosRaw]);
 
-  // ✅ USER solo ve DISPONIBLE
+
   const visibleVehiculos = isAdmin
     ? vehiculos
     : vehiculos.filter((v) => v.estado === "DISPONIBLE");
 
-  // ✅ FIX: recibimos SOLO el ID para evitar “cascada”
+
   const toggleEstado = async (vehiculoId: string) => {
     try {
       setUpdatingId(vehiculoId);
@@ -54,7 +54,7 @@ export default function VehiculosPage() {
           ? "RENTADO"
           : "DISPONIBLE";
 
-      // ✅ Backend exige precio_diario aunque solo cambies estado
+
       await VehiculosService.update(vehiculoId, {
         estado: nextEstado,
         precio_diario: current.precio_diario,

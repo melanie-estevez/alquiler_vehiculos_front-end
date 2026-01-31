@@ -1,4 +1,4 @@
-// src/services/alquileres.service.ts
+
 import { api } from "./api";
 import { pickItem, pickList } from "./http";
 
@@ -6,13 +6,13 @@ export type Alquiler = {
   id_alquiler: string;
   id_reserva: string;
 
-  fecha_entrega: string;     // ISO date string
-  fecha_devolucion: string;  // ISO date string
+  fecha_entrega: string;     
+  fecha_devolucion: string;  
 
-  km_inicial: string; // tu back lo maneja como string numérico
+  km_inicial: string; 
   km_final: string;
 
-  estado: string; // "ENTREGADO" / "FINALIZADO" o lo que uses
+  estado: string;
 };
 
 export type CreateAlquilerDto = {
@@ -37,7 +37,7 @@ export const alquileresService = {
     return pickItem<Alquiler>(res);
   },
 
-  // ✅ si NO existe endpoint /alquiler/reserva/:id entonces filtramos con query
+ 
   async getByReserva(id_reserva: string): Promise<Alquiler | null> {
     const res = await api.get("/alquiler", {
       params: { search: id_reserva, searchField: "id_reserva", limit: 50, page: 1 },

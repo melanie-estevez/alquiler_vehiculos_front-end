@@ -87,17 +87,16 @@ export default function ClienteCreatePage() {
     try {
       setSaving(true);
 
-      // ✅ Endpoint correcto: POST /clientes/me
       await clientesService.createMe({
         ...form,
         licencia_conducir: Boolean(form.licencia_conducir),
       });
 
-      alert("✅ Cliente creado correctamente");
+      alert("Cliente creado correctamente");
       navigate(next, { replace: true });
     } catch (err: any) {
       console.error("Error creando cliente:", err);
-      alert("❌ No se pudo crear el cliente: " + getBackendMessage(err));
+      alert(" No se pudo crear el cliente: " + getBackendMessage(err));
     } finally {
       setSaving(false);
     }

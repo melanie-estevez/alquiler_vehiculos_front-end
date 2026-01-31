@@ -344,3 +344,130 @@
 .table th{
   vertical-align: middle;
 }
+
+.auth-wrap{
+  min-height: 92vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f2f2;
+}
+
+
+.auth-card{
+  display: flex;
+  width: 100%;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,.12);
+}
+
+
+.auth-image{
+  flex: 1;
+  background-image: url("https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2");
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(100%) contrast(1.05) brightness(.9);
+}
+
+
+.auth-form-wrap{
+  flex: 1;
+  padding: 48px 42px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-title{
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.8rem;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+.auth-subtitle{
+  color: rgba(0,0,0,.6);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.auth-field{
+  margin-bottom: 16px;
+}
+
+.auth-label{
+  font-size: .75rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.55);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.auth-input{
+  width: 100%;
+  padding: .85rem .95rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,.2);
+  font-size: 1rem;
+}
+
+.auth-input:focus{
+  outline: none;
+  border-color: #000;
+}
+
+.auth-btn{
+  width: 100%;         
+  margin-top: 10px;
+  padding: .85rem;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+
+.auth-btn:hover{
+  background: #111;
+}
+
+
+@media (max-width: 768px){
+  .auth-card{
+    flex-direction: column;
+  }
+
+  .auth-image{
+    height: 220px;
+  }
+}
+
+.auth-foot{
+  margin-top: 18px;
+  font-size: .95rem;
+  color: rgba(0,0,0,.65);
+}
+
+.auth-link{
+  color: #111;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: .75rem;
+  margin-left: 6px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0,0,0,.4);
+}
+
+.auth-link:hover{
+  border-bottom-color: #000;
+}

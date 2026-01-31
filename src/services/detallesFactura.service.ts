@@ -1,4 +1,4 @@
-// src/services/detallesFactura.service.ts
+
 import { api } from "./api";
 import { pickList, pickItem } from "./http";
 
@@ -24,7 +24,7 @@ export const detallesFacturaService = {
     return pickList<DetalleFactura>(res);
   },
 
-  // ✅ Como el backend no tiene /factura/:id, filtramos con search (sirve porque busca por factura.id_factura)
+ 
   async getByFactura(id_factura: string) {
     const res = await api.get("/detallesfactura", {
       params: { page: 1, limit: 100, search: id_factura },

@@ -9,7 +9,7 @@ interface Props {
   onEdit?: (v: Vehiculo) => void;
   onDelete?: (id: string) => void;
 
-  // ✅ ahora por ID
+
   onToggleEstado?: (id: string) => void;
 }
 
