@@ -30,14 +30,23 @@ export function useVehiculos() {
     }
   };
 
-  const createVehiculo = async (payload: CreateVehiculoDto) => {
-    await VehiculosService.create(payload);
+  // ✅ AHORA DEVUELVE EL VEHICULO CREADO
+  const createVehiculo = async (
+    payload: CreateVehiculoDto,
+  ): Promise<Vehiculo> => {
+    const created = await VehiculosService.create(payload);
     await fetchVehiculos();
+    return created;
   };
 
-  const updateVehiculo = async (id: string, payload: UpdateVehiculoDto) => {
-    await VehiculosService.update(id, payload);
+  // ✅ AHORA DEVUELVE EL VEHICULO ACTUALIZADO
+  const updateVehiculo = async (
+    id: string,
+    payload: UpdateVehiculoDto,
+  ): Promise<Vehiculo> => {
+    const updated = await VehiculosService.update(id, payload);
     await fetchVehiculos();
+    return updated;
   };
 
   const deleteVehiculo = async (id: string) => {

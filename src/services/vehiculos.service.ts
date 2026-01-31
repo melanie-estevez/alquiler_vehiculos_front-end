@@ -1,4 +1,3 @@
-
 import { api } from "./api";
 import { pickItem, pickList } from "./http";
 
@@ -15,11 +14,7 @@ export type Vehiculo = {
     nombre: string;
     ciudad: string;
   } | null;
-
-
   id_sucursal?: string | null;
-
-
   imagen_url?: string | null;
 };
 
@@ -60,5 +55,17 @@ export const VehiculosService = {
 
   async remove(id: string): Promise<void> {
     await api.delete(`/vehiculos/${id}`);
+  },
+
+  async uploadImagen(id: string, file: File): Promise<Vehiculo> {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await api.post(`/vehiculos/${id}/imagen`, fd);
+    return pickItem<Vehiculo>(res);
+  },
+
+  async updateImagenUrl(id: string, imagen_url: string | null): Promise<Vehiculo> {
+    const res = await api.patch(`/vehiculos/${id}/imagen`, { imagen_url });
+    return pickItem<Vehiculo>(res);
   },
 };
