@@ -8,12 +8,16 @@ export type Vehiculo = {
   anio: number;
   placa: string;
   precio_diario: number;
-  estado: "DISPONIBLE" | "MANTENIMIENTO" | "RENTADO";
+
+  // ✅ incluye BAJA
+  estado: "DISPONIBLE" | "MANTENIMIENTO" | "RENTADO" | "BAJA";
+
   sucursal?: {
     id_sucursal: string;
     nombre: string;
     ciudad: string;
   } | null;
+
   id_sucursal?: string | null;
   imagen_url?: string | null;
 };

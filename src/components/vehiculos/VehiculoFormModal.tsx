@@ -1,28 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
-import { Modal, Button, Alert } from "react-bootstrap";
-import {
-  type CreateVehiculoDto,
-  type UpdateVehiculoDto,
-  type Vehiculo,
-  VehiculosService,
+import React, { useEffect, useMemo, useState } from "react";
+import type {
+  Vehiculo,
+  CreateVehiculoDto,
+  UpdateVehiculoDto,
 } from "../../services/vehiculos.service";
-import { useSucursales } from "../../hooks/useSucursales";
-import { API_BASE_URL } from "../../services/api";
+import { VehiculosService } from "../../services/vehiculos.service";
+
+type SucursalOption = { id: string; nombre: string };
 
 interface Props {
   show: boolean;
   onClose: () => void;
   vehiculo: Vehiculo | null;
-  onCreate: (data: CreateVehiculoDto) => Promise<void>;
-  onUpdate: (id: string, data: UpdateVehiculoDto) => Promise<void>;
+
+  // ✅ mismos tipos que usa el hook/service
+  onCreate: (data: CreateVehiculoDto) => Promise<Vehiculo>;
+  onUpdate: (id: string, data: UpdateVehiculoDto) => Promise<Vehiculo>;
+
   onAfterSave?: () => Promise<void> | void;
 }
-
-const imageUrl = (path?: string | null) => {
-  if (!path) return "";
-  if (path.startsWith("http")) return path;
-  return `${API_BASE_URL}${path}`;
-};
 
 export default function VehiculoFormModal({
   show,
@@ -32,526 +28,346 @@ export default function VehiculoFormModal({
   onUpdate,
   onAfterSave,
 }: Props) {
-  const { sucursales } = useSucursales();
+  const isEdit = !!vehiculo;
 
-  const listSucursales = useMemo(
-    () => (Array.isArray(sucursales) ? sucursales : []),
-    [sucursales],
-  );
+  const [marca, setMarca] = useState("");
+  const [modelo, setModelo] = useState("");
+  const [placa, setPlaca] = useState("");
+  const [anio, setAnio] = useState<number>(new Date().getFullYear());
+  const [precioDiario, setPrecioDiario] = useState<number>(0);
 
-  const [form, setForm] = useState({
-    marca: "",
-    modelo: "",
-    anio: "",
-    placa: "",
-    precio_diario: "",
-    id_sucursal: "",
-  });
+  // ✅ tipado real del estado
+  const [estado, setEstado] = useState<Vehiculo["estado"]>("DISPONIBLE");
+  const [idSucursal, setIdSucursal] = useState<string>("");
 
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  // Imagen
   const [file, setFile] = useState<File | null>(null);
-  const [uploadingImg, setUploadingImg] = useState(false);
   const [linkImg, setLinkImg] = useState<string>("");
 
-  // Preview local para archivo
-  const [localPreview, setLocalPreview] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string>("");
 
-  const disabledAll = saving || uploadingImg;
-
-  const inputStyle: React.CSSProperties = {
-    borderRadius: 12,
-    border: "1px solid #dee2e6",
-    background: "#fff",
-    padding: "12px 14px",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    color: "#111",
-    fontWeight: 700,
-    fontSize: 13,
-    marginBottom: 6,
-  };
+  const [sucursales, setSucursales] = useState<SucursalOption[]>([]);
+  const [loadingSucursales, setLoadingSucursales] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
+    const loadSucursales = async () => {
+      try {
+        setLoadingSucursales(true);
+        const res: any = await (VehiculosService as any).getSucursales?.();
+        const items: any[] = Array.isArray(res) ? res : res?.items ?? res ?? [];
+
+        const parsed: SucursalOption[] = items
+          .map((s) => ({
+            id: String(s.id_sucursal ?? s.id ?? ""),
+            nombre: String(s.nombre ?? s.name ?? ""),
+          }))
+          .filter((s) => s.id && s.nombre);
+
+        if (mounted) setSucursales(parsed);
+      } catch {
+        if (mounted) setSucursales([]);
+      } finally {
+        if (mounted) setLoadingSucursales(false);
+      }
+    };
+
+    loadSucursales();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!show) return;
+
+    setError("");
+    setFile(null);
+
     if (vehiculo) {
-      setForm({
-        marca: vehiculo.marca ?? "",
-        modelo: vehiculo.modelo ?? "",
-        anio: String(vehiculo.anio ?? ""),
-        placa: vehiculo.placa ?? "",
-        precio_diario: String(vehiculo.precio_diario ?? ""),
-        id_sucursal:
-          vehiculo.sucursal?.id_sucursal || (vehiculo as any).id_sucursal || "",
-      });
-      setLinkImg((vehiculo.imagen_url as any) || "");
+      setMarca(vehiculo.marca ?? "");
+      setModelo(vehiculo.modelo ?? "");
+      setPlaca(vehiculo.placa ?? "");
+      setAnio(Number(vehiculo.anio ?? new Date().getFullYear()));
+      setPrecioDiario(Number(vehiculo.precio_diario ?? 0));
+      setEstado(vehiculo.estado ?? "DISPONIBLE");
+
+      const sid =
+        (vehiculo as any).id_sucursal ||
+        vehiculo.sucursal?.id_sucursal ||
+        (vehiculo as any).sucursal_id ||
+        "";
+      setIdSucursal(sid ? String(sid) : "");
+
+      const currentImg =
+        (vehiculo as any).imagen_url ||
+        (vehiculo as any).imagenUrl ||
+        (vehiculo as any).img_url ||
+        "";
+      setLinkImg(currentImg ? String(currentImg) : "");
     } else {
-      setForm({
-        marca: "",
-        modelo: "",
-        anio: "",
-        placa: "",
-        precio_diario: "",
-        id_sucursal: "",
-      });
+      setMarca("");
+      setModelo("");
+      setPlaca("");
+      setAnio(new Date().getFullYear());
+      setPrecioDiario(0);
+      setEstado("DISPONIBLE");
+      setIdSucursal("");
       setLinkImg("");
     }
+  }, [show, vehiculo]);
 
-    setFile(null);
-    setLocalPreview("");
-    setError(null);
-  }, [vehiculo, show]);
+  const canSubmit = useMemo(() => {
+    if (!marca.trim()) return false;
+    if (!modelo.trim()) return false;
+    if (!placa.trim()) return false;
+    if (!anio || Number.isNaN(anio)) return false;
+    if (precioDiario === null || Number.isNaN(precioDiario)) return false;
+    return true;
+  }, [marca, modelo, placa, anio, precioDiario]);
 
-  // liberar objectURL
-  useEffect(() => {
-    return () => {
-      if (localPreview) URL.revokeObjectURL(localPreview);
-    };
-  }, [localPreview]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => setForm({ ...form, [e.target.name]: e.target.value });
+    if (!canSubmit) {
+      setError("Completa los campos obligatorios.");
+      return;
+    }
 
-  const handlePickFile = (f: File | null) => {
-    setFile(f);
-    if (localPreview) URL.revokeObjectURL(localPreview);
-    setLocalPreview(f ? URL.createObjectURL(f) : "");
-  };
-
-  const currentImg =
-    localPreview ||
-    (linkImg?.startsWith("http") ? linkImg : imageUrl(linkImg)) ||
-    imageUrl(vehiculo?.imagen_url);
-
-  const validate = (payload: CreateVehiculoDto) => {
-    if (!payload.marca?.trim()) return "Marca obligatoria";
-    if (!payload.modelo?.trim()) return "Modelo obligatorio";
-    if (!payload.placa?.trim()) return "Placa obligatoria";
-    if (!payload.anio || isNaN(payload.anio)) return "Año inválido";
-    if (payload.precio_diario == null || isNaN(payload.precio_diario))
-      return "Precio diario inválido";
-    return "";
-  };
-
-  const handleSubmit = async () => {
     try {
-      setError(null);
       setSaving(true);
 
-      const payload: CreateVehiculoDto = {
-        marca: form.marca.trim(),
-        modelo: form.modelo.trim(),
-        placa: form.placa.trim(),
-        anio: Number(form.anio),
-        precio_diario: Number(form.precio_diario),
-        id_sucursal: form.id_sucursal ? form.id_sucursal : undefined,
-      };
-
-      const v = validate(payload);
-      if (v) {
-        setError(v);
-        return;
-      }
-
-      // 1) guardar vehículo (create/update)
       if (vehiculo) {
-        const update: UpdateVehiculoDto = { ...payload };
-        await onUpdate(vehiculo.id_vehiculo, update);
+        // ✅ UpdateVehiculoDto (partial) + estado
+        const payload: UpdateVehiculoDto = {
+          marca: marca.trim(),
+          modelo: modelo.trim(),
+          placa: placa.trim(),
+          anio: Number(anio),
+          precio_diario: Number(precioDiario),
+          estado,
+          id_sucursal: idSucursal || undefined,
+        };
+
+        const updated = await onUpdate(vehiculo.id_vehiculo, payload);
+
+        const savedId = updated?.id_vehiculo || vehiculo.id_vehiculo;
+
+        if (savedId && file) await VehiculosService.uploadImagen(savedId, file);
+
+        const url = linkImg.trim();
+        if (savedId && url && url.startsWith("http")) {
+          await VehiculosService.updateImagenUrl(savedId, url);
+        }
       } else {
-        await onCreate(payload);
-      }
+        // ✅ CreateVehiculoDto NO lleva estado (según tu service)
+        const payload: CreateVehiculoDto = {
+          marca: marca.trim(),
+          modelo: modelo.trim(),
+          placa: placa.trim(),
+          anio: Number(anio),
+          precio_diario: Number(precioDiario),
+          id_sucursal: idSucursal || undefined,
+          imagen_url: linkImg.trim() || null,
+        };
 
-      // 2) refrescar para tener el id (si creaste)
-      if (onAfterSave) await onAfterSave();
+        const created = await onCreate(payload);
+        const savedId = created?.id_vehiculo;
 
-      // 3) si es edición, aplicar imagen inmediatamente
-      //    (si es creación, se aplica luego al editar, a menos que tu hook devuelva el ID creado)
-      if (vehiculo?.id_vehiculo) {
-        // Si el usuario eligió archivo, subimos
-        if (file) {
-          setUploadingImg(true);
-          await VehiculosService.uploadImagen(vehiculo.id_vehiculo, file);
-          handlePickFile(null);
-        }
+        if (savedId && file) await VehiculosService.uploadImagen(savedId, file);
 
-        // Si escribió link http, guardamos link
-        if (linkImg && linkImg.startsWith("http")) {
-          setUploadingImg(true);
-          await VehiculosService.updateImagenUrl(vehiculo.id_vehiculo, linkImg);
-        }
+        // si quieres forzar estado al crear, lo harías con update luego (si tu API lo permite),
+        // pero por tipos tu CreateVehiculoDto no incluye estado.
       }
 
       if (onAfterSave) await onAfterSave();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("No se pudo guardar el vehículo.");
+      setError(err?.message || "No se pudo guardar el vehículo.");
     } finally {
       setSaving(false);
-      setUploadingImg(false);
     }
   };
 
-  const handleUploadImagen = async () => {
-    if (!vehiculo?.id_vehiculo) {
-      setError("Primero guarda el vehículo y luego sube la imagen.");
-      return;
-    }
-    if (!file) {
-      setError("Selecciona una imagen primero.");
-      return;
-    }
-
-    try {
-      setError(null);
-      setUploadingImg(true);
-      await VehiculosService.uploadImagen(vehiculo.id_vehiculo, file);
-      handlePickFile(null);
-      if (onAfterSave) await onAfterSave();
-    } catch (err) {
-      console.error(err);
-      setError("No se pudo subir la imagen.");
-    } finally {
-      setUploadingImg(false);
-    }
-  };
-
-  const handleApplyLink = async () => {
-    if (!vehiculo?.id_vehiculo) {
-      setError("Primero guarda el vehículo y luego aplica el link.");
-      return;
-    }
-    if (!linkImg || !linkImg.startsWith("http")) {
-      setError("Ingresa un link válido (https://...)");
-      return;
-    }
-
-    try {
-      setError(null);
-      setUploadingImg(true);
-      await VehiculosService.updateImagenUrl(vehiculo.id_vehiculo, linkImg);
-      if (onAfterSave) await onAfterSave();
-    } catch (err) {
-      console.error(err);
-      setError("No se pudo guardar el link de imagen.");
-    } finally {
-      setUploadingImg(false);
-    }
-  };
-
-  const handleRemoveImagen = async () => {
-    try {
-      setError(null);
-      handlePickFile(null);
-      setLinkImg("");
-
-      if (!vehiculo?.id_vehiculo) return;
-
-      setUploadingImg(true);
-      await VehiculosService.updateImagenUrl(vehiculo.id_vehiculo, null);
-      if (onAfterSave) await onAfterSave();
-    } catch (err) {
-      console.error(err);
-      setError("No se pudo quitar la imagen.");
-    } finally {
-      setUploadingImg(false);
-    }
-  };
+  if (!show) return null;
 
   return (
-    <Modal
-      show={show}
-      onHide={onClose}
-      backdrop="static"
-      centered
-      size="lg"
-      contentClassName="border-0"
+    <div
+      className="modal d-block"
+      tabIndex={-1}
+      role="dialog"
+      style={{ background: "rgba(0,0,0,.35)" }}
     >
-      <Modal.Header
-        closeButton
-        style={{
-          borderBottom: "1px solid #eee",
-          background: "#fff",
-          borderTopLeftRadius: 16,
-          borderTopRightRadius: 16,
-        }}
-      >
-        <Modal.Title className="fw-bold" style={{ color: "#111" }}>
-          {vehiculo ? "Editar vehículo" : "Nuevo vehículo"}
-        </Modal.Title>
-      </Modal.Header>
+      <div className="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div className="modal-content rounded-4">
+          <div className="modal-header">
+            <h5 className="modal-title fw-bold">
+              {isEdit ? "Editar vehículo" : "Nuevo vehículo"}
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="Close"
+              onClick={onClose}
+              disabled={saving}
+            />
+          </div>
 
-      <Modal.Body style={{ background: "#fff" }}>
-        {error && (
-          <Alert variant="danger" className="rounded-4">
-            {error}
-          </Alert>
-        )}
+          <form onSubmit={handleSubmit}>
+            <div className="modal-body">
+              {error && (
+                <div className="alert alert-danger py-2" role="alert">
+                  {error}
+                </div>
+              )}
 
-        {/* Layout 2 columnas */}
-        <div className="row g-4">
-          {/* Col izquierda: Imagen */}
-          <div className="col-12 col-lg-5">
-            <div
-              className="rounded-4 border p-3"
-              style={{
-                borderColor: "#e9ecef",
-                background: "#f8f9fa",
-              }}
-            >
-              <div style={labelStyle}>Imagen del vehículo</div>
-
-              <div
-                className="rounded-4 overflow-hidden border mb-3"
-                style={{
-                  borderColor: "#e9ecef",
-                  background: "#111",
-                  height: 220,
-                }}
-              >
-                {currentImg ? (
-                  <img
-                    src={currentImg}
-                    alt="Vehículo"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                    }}
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = "";
-                    }}
+              <div className="row g-3">
+                <div className="col-12 col-md-6">
+                  <label className="form-label fw-semibold">Marca *</label>
+                  <input
+                    className="form-control"
+                    value={marca}
+                    onChange={(e) => setMarca(e.target.value)}
+                    disabled={saving}
+                    placeholder="Ej: Toyota"
                   />
-                ) : (
-                  <div
-                    className="d-flex align-items-center justify-content-center h-100"
-                    style={{ color: "rgba(255,255,255,.65)" }}
-                  >
-                    Sin imagen
+                </div>
+
+                <div className="col-12 col-md-6">
+                  <label className="form-label fw-semibold">Modelo *</label>
+                  <input
+                    className="form-control"
+                    value={modelo}
+                    onChange={(e) => setModelo(e.target.value)}
+                    disabled={saving}
+                    placeholder="Ej: Corolla"
+                  />
+                </div>
+
+                <div className="col-12 col-md-6">
+                  <label className="form-label fw-semibold">Placa *</label>
+                  <input
+                    className="form-control"
+                    value={placa}
+                    onChange={(e) => setPlaca(e.target.value)}
+                    disabled={saving}
+                    placeholder="ABC-1234"
+                  />
+                </div>
+
+                <div className="col-6 col-md-3">
+                  <label className="form-label fw-semibold">Año *</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={anio}
+                    onChange={(e) => setAnio(Number(e.target.value))}
+                    disabled={saving}
+                    min={1900}
+                    max={2100}
+                  />
+                </div>
+
+                <div className="col-6 col-md-3">
+                  <label className="form-label fw-semibold">Precio/día *</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={precioDiario}
+                    onChange={(e) => setPrecioDiario(Number(e.target.value))}
+                    disabled={saving}
+                    min={0}
+                    step="0.01"
+                  />
+                </div>
+
+                {isEdit && (
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold">Estado</label>
+                    <select
+                      className="form-select"
+                      value={estado}
+                      onChange={(e) => setEstado(e.target.value as Vehiculo["estado"])}
+                      disabled={saving}
+                    >
+                      <option value="DISPONIBLE">DISPONIBLE</option>
+                      <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+                      <option value="RENTADO">RENTADO</option>
+                      <option value="BAJA">BAJA</option>
+                    </select>
                   </div>
                 )}
-              </div>
 
-              {/* Link */}
-              <label className="form-label" style={labelStyle}>
-                Link de imagen
-              </label>
-              <input
-                className="form-control"
-                style={inputStyle}
-                placeholder="https://..."
-                value={linkImg}
-                onChange={(e) => setLinkImg(e.target.value)}
-                disabled={disabledAll}
-              />
-              <div className="d-flex gap-2 mt-2 flex-wrap">
-                <Button
-                  variant="outline-dark"
-                  className="rounded-3"
-                  onClick={handleApplyLink}
-                  disabled={disabledAll || !vehiculo}
-                  title={vehiculo ? "" : "Guarda primero el vehículo"}
-                >
-                  Aplicar link
-                </Button>
-                <Button
-                  variant="outline-secondary"
-                  className="rounded-3"
-                  onClick={handleRemoveImagen}
-                  disabled={disabledAll}
-                >
-                  Quitar
-                </Button>
-              </div>
-
-              {/* Archivo */}
-              <div className="mt-3">
-                <label className="form-label" style={labelStyle}>
-                  Subir archivo
-                </label>
-                <input
-                  className="form-control"
-                  style={{ ...inputStyle, padding: 10 }}
-                  type="file"
-                  accept="image/*"
-                  disabled={disabledAll}
-                  onChange={(e) => handlePickFile(e.target.files?.[0] ?? null)}
-                />
-
-                <div className="d-grid mt-2">
-                  <Button
-                    variant="dark"
-                    className="rounded-3"
-                    onClick={handleUploadImagen}
-                    disabled={disabledAll || !vehiculo || !file}
-                    title={vehiculo ? "" : "Guarda primero el vehículo"}
+                <div className="col-12 col-md-6">
+                  <label className="form-label fw-semibold">Sucursal</label>
+                  <select
+                    className="form-select"
+                    value={idSucursal}
+                    onChange={(e) => setIdSucursal(e.target.value)}
+                    disabled={saving || loadingSucursales}
                   >
-                    {uploadingImg ? "Subiendo..." : "Subir imagen"}
-                  </Button>
+                    <option value="">(Sin asignar)</option>
+                    {sucursales.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingSucursales && (
+                    <div className="form-text">Cargando sucursales…</div>
+                  )}
                 </div>
 
-                <div className="text-muted small mt-2" style={{ lineHeight: 1.4 }}>
-                  {vehiculo
-                    ? "Puedes aplicar link o subir archivo. Se guardará en el vehículo."
-                    : "Primero guarda el vehículo. Luego podrás aplicar link o subir archivo."}
+                <hr className="my-2" />
+
+                <div className="col-12">
+                  <label className="form-label fw-semibold">Imagen (archivo)</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    accept="image/*"
+                    disabled={saving}
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  />
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Col derecha: Form */}
-          <div className="col-12 col-lg-7">
-            <div className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label" style={labelStyle}>
-                  Marca
-                </label>
-                <input
-                  className="form-control"
-                  style={inputStyle}
-                  name="marca"
-                  placeholder="Ej: Toyota"
-                  value={form.marca}
-                  onChange={handleChange}
-                  disabled={disabledAll}
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label" style={labelStyle}>
-                  Modelo
-                </label>
-                <input
-                  className="form-control"
-                  style={inputStyle}
-                  name="modelo"
-                  placeholder="Ej: Corolla"
-                  value={form.modelo}
-                  onChange={handleChange}
-                  disabled={disabledAll}
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label" style={labelStyle}>
-                  Año
-                </label>
-                <input
-                  className="form-control"
-                  style={inputStyle}
-                  type="number"
-                  name="anio"
-                  placeholder="Ej: 2024"
-                  value={form.anio}
-                  onChange={handleChange}
-                  disabled={disabledAll}
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label" style={labelStyle}>
-                  Placa
-                </label>
-                <input
-                  className="form-control"
-                  style={inputStyle}
-                  name="placa"
-                  placeholder="Ej: PBA-1234"
-                  value={form.placa}
-                  onChange={handleChange}
-                  disabled={disabledAll}
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label" style={labelStyle}>
-                  Precio diario
-                </label>
-                <input
-                  className="form-control"
-                  style={inputStyle}
-                  type="number"
-                  name="precio_diario"
-                  placeholder="Ej: 35"
-                  value={form.precio_diario}
-                  onChange={handleChange}
-                  disabled={disabledAll}
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label" style={labelStyle}>
-                  Sucursal
-                </label>
-                <select
-                  className="form-select"
-                  style={{ ...inputStyle, padding: "12px 14px" }}
-                  name="id_sucursal"
-                  value={form.id_sucursal}
-                  onChange={handleChange}
-                  disabled={disabledAll}
-                >
-                  <option value="">Sin sucursal</option>
-                  {listSucursales.map((s: any) => (
-                    <option key={s.id_sucursal} value={s.id_sucursal}>
-                      {s.nombre} - {s.ciudad}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* NOTE */}
-              <div className="col-12">
-                <div
-                  className="rounded-4 border p-3"
-                  style={{
-                    borderColor: "#e9ecef",
-                    background: "#f8f9fa",
-                    color: "#6c757d",
-                  }}
-                >
-                  <div className="fw-bold text-dark mb-1">Tip</div>
-                  <div className="small">
-                    Para subir imagen desde archivo o aplicar link, primero guarda el vehículo
-                    (si es nuevo) y luego edítalo.
-                  </div>
+                <div className="col-12">
+                  <label className="form-label fw-semibold">Imagen (URL)</label>
+                  <input
+                    className="form-control"
+                    value={linkImg}
+                    onChange={(e) => setLinkImg(e.target.value)}
+                    disabled={saving}
+                    placeholder="https://..."
+                  />
                 </div>
               </div>
             </div>
-          </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={onClose}
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                className="btn btn-dark"
+                disabled={saving || !canSubmit}
+              >
+                {saving ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
+          </form>
         </div>
-      </Modal.Body>
-
-      <Modal.Footer
-        style={{
-          borderTop: "1px solid #eee",
-          background: "#fff",
-          borderBottomLeftRadius: 16,
-          borderBottomRightRadius: 16,
-        }}
-      >
-        <Button
-          variant="outline-secondary"
-          className="rounded-3"
-          onClick={onClose}
-          disabled={disabledAll}
-        >
-          Cancelar
-        </Button>
-
-        <Button
-          variant="dark"
-          className="rounded-3 px-4"
-          onClick={handleSubmit}
-          disabled={disabledAll}
-        >
-          {saving ? "Guardando..." : "Guardar"}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+      </div>
+    </div>
   );
 }

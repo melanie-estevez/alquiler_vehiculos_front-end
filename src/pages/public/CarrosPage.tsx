@@ -292,7 +292,7 @@ export default function CarrosPage() {
         </div>
       </div>
 
-      {/* CATALOGO */}
+      
       {loading ? (
         <div className="text-muted">Cargando…</div>
       ) : (
