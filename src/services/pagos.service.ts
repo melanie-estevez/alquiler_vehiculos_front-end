@@ -17,8 +17,8 @@ export type CreatePagoDto = {
 };
 
 export const pagosService = {
-  async getAll(): Promise<Pago[]> {
-    const res = await api.get("/pagos");
+  async getAll(params?: any): Promise<Pago[]> {
+    const res = await api.get("/pagos", { params });
     return pickList<Pago>(res);
   },
 

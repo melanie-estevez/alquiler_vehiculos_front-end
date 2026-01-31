@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { facturasService, type Factura } from "../../services/facturas.service";
 import { pagosService } from "../../services/pagos.service";
 import { useAuth } from "../../context/AuthContext";
 
 function backendMsg(err: any) {
-  const m = err?.response?.data?.message || err?.response?.data?.error || err?.message || "Error";
+  const m =
+    err?.response?.data?.message ||
+    err?.response?.data?.error ||
+    err?.message ||
+    "Error";
   return Array.isArray(m) ? m.join(", ") : String(m);
 }
 
 export default function PagarFacturaPage() {
   const { idFactura } = useParams<{ idFactura: string }>();
-  const [sp] = useSearchParams();
-  const idReserva = sp.get("reserva") || undefined;
 
   const navigate = useNavigate();
   const { user, ready } = useAuth();
@@ -62,9 +64,6 @@ export default function PagarFacturaPage() {
       await pagosService.create({
         id_factura: factura.id_factura,
         metodo,
-        estado: "Completado",
-        fecha_pago: new Date().toISOString(),
-        id_reserva: idReserva,
       });
 
       alert("Pago realizado. Tu reserva fue confirmada.");
@@ -108,13 +107,21 @@ export default function PagarFacturaPage() {
           </div>
 
           <label className="form-label">Método de pago</label>
-          <select className="form-select" value={metodo} onChange={(e) => setMetodo(e.target.value)}>
+          <select
+            className="form-select"
+            value={metodo}
+            onChange={(e) => setMetodo(e.target.value)}
+          >
             <option value="TARJETA">Tarjeta</option>
             <option value="TRANSFERENCIA">Transferencia</option>
             <option value="EFECTIVO">Efectivo</option>
           </select>
 
-          <button className="btn btn-dark w-100 mt-4" onClick={pagar} disabled={saving}>
+          <button
+            className="btn btn-dark w-100 mt-4"
+            onClick={pagar}
+            disabled={saving}
+          >
             {saving ? "Pagando..." : "Confirmar pago"}
           </button>
         </div>
