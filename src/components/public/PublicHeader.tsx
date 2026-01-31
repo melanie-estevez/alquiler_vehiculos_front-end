@@ -44,14 +44,14 @@ export default function PublicHeader(): JSX.Element {
               <Link className="nav-link" to="/carros">Carros</Link>
             </li>
 
-            {/* USER */}
+
             {user && !isAdmin && (
               <li className="nav-item">
                 <Link className="nav-link" to="/mis-reservas">Mis Reservas</Link>
               </li>
             )}
 
-            {/* ADMIN */}
+
             {user && isAdmin && (
               <>
                 <li className="nav-item">
@@ -78,7 +78,6 @@ export default function PublicHeader(): JSX.Element {
               </>
             )}
 
-            {/* AUTH */}
             {!user ? (
               <>
                 <li className="nav-item">

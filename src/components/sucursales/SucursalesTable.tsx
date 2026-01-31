@@ -1,4 +1,3 @@
-// src/components/sucursales/SucursalesTable.tsx
 import type { Sucursal } from "../../services/sucursales.service";
 
 interface Props {

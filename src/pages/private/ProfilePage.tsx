@@ -1,4 +1,3 @@
-// src/pages/private/ProfilePage.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -58,7 +57,7 @@ export default function ProfilePage() {
     try {
       setLoading(true);
 
-      // ✅ fuerza refresh por si antes hubo 404 cacheado
+
       const c = await clientesService.getCliente(true);
       setCliente(c);
 
@@ -78,7 +77,7 @@ export default function ProfilePage() {
       }
     } catch (err: any) {
       console.error(err);
-      alert("❌ Error cargando perfil: " + backendMsg(err));
+      alert("Error cargando perfil: " + backendMsg(err));
       setCliente(null);
       setForm({ ...emptyForm, email: user?.email ?? "" });
     } finally {
@@ -95,7 +94,7 @@ export default function ProfilePage() {
     }
 
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [ready, user]);
 
   const onChange = <K extends keyof FormState>(k: K, v: FormState[K]) => {
@@ -123,7 +122,7 @@ export default function ProfilePage() {
         name: form.name.trim(),
         apellido: form.apellido.trim(),
         cedula: form.cedula.trim(),
-        email: user?.email || form.email, // ✅ SIEMPRE el del usuario logueado
+        email: user?.email || form.email, 
         celular: form.celular.trim(),
         fecha_nacimiento: form.fecha_nacimiento,
         licencia_conducir: Boolean(form.licencia_conducir),
@@ -133,25 +132,25 @@ export default function ProfilePage() {
       let updated: ClienteMe;
 
       if (!cliente) {
-        // ✅ CREA (POST /clientes/me)
+
         updated = await clientesService.createMe(payload);
-        alert("✅ Cliente creado");
+        alert("Cliente creado");
       } else {
-        // ✅ ACTUALIZA (PUT /clientes/:id) por clientesService.updateMe
+    
         updated = await clientesService.updateMe(payload);
-        alert("✅ Perfil actualizado");
+        alert("Perfil actualizado");
       }
 
       setCliente(updated);
       await load();
 
-      // ✅ si venías desde /reservar, vuelve
+
       if (next) {
         navigate(next, { replace: true });
       }
     } catch (err: any) {
       console.error(err);
-      alert("❌ No se pudo guardar: " + backendMsg(err));
+      alert(" No se pudo guardar: " );
     } finally {
       setSaving(false);
     }

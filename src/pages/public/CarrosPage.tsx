@@ -25,10 +25,10 @@ export default function CarrosPage() {
   };
 
   useEffect(() => {
-    // si quieres que sin login se vean vehículos igual, no dependas de ready
+
     if (!ready) return;
     loadVehiculos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [ready]);
 
   const handleReservar = (vehiculoId: string) => {
@@ -48,7 +48,7 @@ export default function CarrosPage() {
 
       await VehiculosService.update(vehiculo.id_vehiculo, {
         estado: nextEstado,
-        // backend exige precio_diario
+
         precio_diario: vehiculo.precio_diario,
       });
 

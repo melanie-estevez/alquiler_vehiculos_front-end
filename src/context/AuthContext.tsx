@@ -1,4 +1,4 @@
-// src/context/AuthContext.tsx
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { decodeJwt } from "../utils/jwt";
 import { loginApi, registerApi } from "../services/auth.service";
@@ -28,17 +28,17 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const LS_TOKEN = "auth_token";
 
-// payload real del backend (AuthService): { sub, email, role, exp }
+
 type JwtPayload = {
   sub: string;
   email: string;
   role: "admin" | "user";
-  exp?: number; // seconds (JWT standard)
+  exp?: number; 
   iat?: number;
 };
 
 function isExpired(payload: JwtPayload) {
-  if (!payload?.exp) return false; // si tu backend no manda exp, no bloqueamos
+  if (!payload?.exp) return false; 
   const nowSec = Math.floor(Date.now() / 1000);
   return payload.exp <= nowSec;
 }
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem(LS_TOKEN);
 
-    // ✅ caches que NO deben quedar entre usuarios/sesiones
+ 
     clientesService.clearCache();
     localStorage.removeItem("factura_by_reserva");
   };
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const u = parseUserFromToken(t);
 
-    // ✅ si token es inválido/expirado -> limpiamos
+  
     if (!u) {
       hardClearAuth();
       return;
@@ -94,13 +94,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshFromToken();
     setReady(true);
 
-    // ✅ si abres otra pestaña y haces logout/login, sincroniza estado
+
     const onStorage = (e: StorageEvent) => {
       if (e.key === LS_TOKEN) refreshFromToken();
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, []);
 
   const isAdmin = useMemo(() => user?.role === "admin", [user?.role]);
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const u = parseUserFromToken(t);
     if (!u) {
-      // token inválido -> no dejamos sesión “a medias”
+
       hardClearAuth();
       throw new Error("Token inválido devuelto por el backend.");
     }
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(t);
     setUser(u);
 
-    // ✅ IMPORTANTÍSIMO: si antes cacheaste 404, borra cache al entrar
+
     clientesService.clearCache();
   };
 

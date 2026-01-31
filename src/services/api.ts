@@ -1,4 +1,4 @@
-// src/services/api.ts
+
 import axios from "axios";
 
 export const api = axios.create({
@@ -8,7 +8,7 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("auth_token");
 
-  // ✅ blindaje headers (axios v1)
+
   config.headers = config.headers ?? {};
 
   if (token) {

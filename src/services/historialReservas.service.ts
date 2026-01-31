@@ -1,4 +1,4 @@
-// src/services/historialReservas.service.ts
+
 import { api } from "./api";
 import { pickItem, pickList } from "./http";
 
@@ -7,7 +7,7 @@ export type HistorialReserva = {
   id_reserva: string;
   estado_anterior: string;
   estado_nuevo: string;
-  fecha: string; // ISO
+  fecha: string; 
 };
 
 export type CreateHistorialReservaDto = {
