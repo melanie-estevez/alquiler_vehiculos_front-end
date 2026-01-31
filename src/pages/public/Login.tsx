@@ -23,7 +23,7 @@ export default function Login() {
       await login({ email, password });
       navigate("/", { replace: true });
     } catch (err) {
-      alert("❌ No se pudo iniciar sesión: " + backendMsg(err));
+      alert("No se pudo iniciar sesión: " + backendMsg(err));
     } finally {
       setLoading(false);
     }
