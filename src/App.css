@@ -247,3 +247,100 @@
   text-align: justify;              
   margin-bottom: 14px;
 }
+
+
+.page-head{
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title{
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  font-size: clamp(1.5rem, 2.3vw, 2.1rem);
+  color: #111;
+}
+
+
+.btn-elegant{
+  font-family: var(--hero-font);   
+  font-weight: 500;                
+  font-size: .85rem;               
+  letter-spacing: .08em;           
+  padding: .6rem 1.3rem;
+
+
+}
+
+
+.content-card{
+  border: 1px solid rgba(0,0,0,.18);
+  border-radius: 0;
+  background: #fff;
+  padding: 1.1rem;
+}
+
+
+.loading-wrap{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.2rem 1rem;
+}
+
+
+.table{
+  border-collapse: collapse;  
+  width: 100%;
+}
+
+
+.table thead th{
+  border-bottom: 1px solid rgba(0,0,0,.18);
+  border-right: 1px solid rgba(0,0,0,.18);
+  padding: .9rem .75rem;
+
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: .8rem;
+  font-weight: 600;
+  color: rgba(0,0,0,.65);
+}
+
+
+.table thead th:last-child{
+  border-right: none;
+}
+
+
+.table tbody td{
+  border-bottom: 1px solid rgba(0,0,0,.12);
+  border-right: 1px solid rgba(0,0,0,.12);
+  padding: .85rem .75rem;
+  font-size: .95rem;
+  color: #222;
+}
+
+.table tbody td:last-child{
+  border-right: none;
+}
+
+
+.table tbody tr:last-child td{
+  border-bottom: none;
+}
+
+
+.table tbody tr:hover{
+  background-color: rgba(0,0,0,.035);
+}
+
+
+.table td,
+.table th{
+  vertical-align: middle;
+}

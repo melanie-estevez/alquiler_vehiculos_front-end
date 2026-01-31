@@ -17,6 +17,7 @@ export function SucursalesTable({ sucursales, onEdit, onDelete }: Props) {
           <th>Nombre</th>
           <th>Ciudad</th>
           <th>Dirección</th>
+          <th>Telefono</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -27,6 +28,7 @@ export function SucursalesTable({ sucursales, onEdit, onDelete }: Props) {
             <td>{s.nombre}</td>
             <td>{s.ciudad}</td>
             <td>{s.direccion}</td>
+            <td>{s.telefono}</td>
 
             <td>
               {onEdit && (
@@ -36,7 +38,7 @@ export function SucursalesTable({ sucursales, onEdit, onDelete }: Props) {
               )}
 
               {onDelete && (
-                <button className="btn btn-sm btn-danger" onClick={() => onDelete(s.id_sucursal)}>
+                <button className="btn btn-sm btn-dark" onClick={() => onDelete(s.id_sucursal)}>
                   Eliminar
                 </button>
               )}

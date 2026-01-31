@@ -19,7 +19,7 @@ export default function Register() {
       navigate("/", { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || "Error";
-      alert("❌ No se pudo registrar: " + msg);
+      alert("No se pudo registrar: " + msg);
     } finally {
       setLoading(false);
     }
