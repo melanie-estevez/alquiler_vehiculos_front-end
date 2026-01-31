@@ -58,16 +58,10 @@ export default function PublicHeader(): JSX.Element {
                   <Link className="nav-link" to="/admin/sucursales">Sucursales</Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/admin/vehiculos">Vehículos</Link>
-                </li>
-                <li className="nav-item">
                   <Link className="nav-link" to="/admin/reservas">Reservas</Link>
                 </li>
                 <li className="nav-item">
                   <Link className="nav-link" to="/admin/mantenimientos">Mantenimientos</Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/admin/facturas">Facturas</Link>
                 </li>
                 <li className="nav-item">
                   <Link className="nav-link" to="/admin/pagos">Pagos</Link>
