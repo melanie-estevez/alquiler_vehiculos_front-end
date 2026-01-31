@@ -1,4 +1,4 @@
-// src/services/historialUsuario.service.ts
+
 import { api } from "./api";
 import { pickItem, pickList } from "./http";
 
@@ -7,7 +7,7 @@ export type HistorialUsuario = {
   id_usuario: string;
   id_reserva: string;
   accion: string;
-  fecha: string; // ISO
+  fecha: string; 
 };
 
 export type CreateHistorialUsuarioDto = {

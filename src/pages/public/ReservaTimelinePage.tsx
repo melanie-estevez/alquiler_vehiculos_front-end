@@ -1,4 +1,4 @@
-// src/pages/public/ReservaTimelinePage.tsx
+
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { historialUsuarioService, type HistorialUsuario } from "../../services/historialUsuario.service";

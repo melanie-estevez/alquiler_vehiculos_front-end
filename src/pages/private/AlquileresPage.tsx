@@ -1,4 +1,4 @@
-// src/pages/private/AlquileresPage.tsx
+
 import { useEffect, useMemo, useState } from "react";
 import { alquileresService, type Alquiler } from "../../services/alquileres.service";
 
@@ -44,10 +44,10 @@ export default function AlquileresPage() {
         estado: "FINALIZADO",
       });
       await load();
-      alert("✅ Alquiler actualizado a FINALIZADO");
+      alert("Alquiler actualizado a FINALIZADO");
     } catch (e) {
       console.error(e);
-      alert("❌ No se pudo actualizar alquiler");
+      alert("No se pudo actualizar alquiler");
     }
   };
 

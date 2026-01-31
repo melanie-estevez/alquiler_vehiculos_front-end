@@ -25,29 +25,59 @@ export default function Register() {
   };
 
   return (
-    <div className="container mt-5 pt-5" style={{ maxWidth: 520 }}>
-      <h2>Register</h2>
+  <div className="auth-wrap">
+      <div className="auth-card">
+        
+      
+        <div className="auth-image"></div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          className="form-control mb-2"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        
+        <div className="auth-form-wrap">
+          <div className="auth-head">
+            <h2 className="auth-title">Crear cuenta</h2>
+            
+          </div>
 
-        <input
-          className="form-control mb-2"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="auth-field">
+              <label className="auth-label">Correo electrónico</label>
+              <input
+                className="auth-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        <button className="btn btn-dark w-100" disabled={loading}>
-          {loading ? "Creando..." : "Crear cuenta"}
-        </button>
-      </form>
+            <div className="auth-field">
+              <label className="auth-label">Contraseña</label>
+              <input
+                className="auth-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <button className="auth-btn" disabled={loading}>
+              {loading ? "Creando cuenta..." : "Crear cuenta"}
+            </button>
+          </form>
+
+          <div className="auth-foot">
+            <span>¿Ya tienes cuenta?</span>{" "}
+            <span
+              className="auth-link"
+              onClick={() => navigate("/auth/login")}
+            >
+              Iniciar sesión
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
+
 }

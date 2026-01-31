@@ -1,4 +1,4 @@
-// src/utils/jwt.ts
+
 export type JwtPayload = Record<string, any>;
 
 function b64urlDecode(input: string): string {

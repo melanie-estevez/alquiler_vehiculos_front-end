@@ -1,4 +1,3 @@
-// src/pages/private/AuditoriaReservaPage.tsx
 import { useMemo, useState } from "react";
 import { historialReservasService, type HistorialReserva } from "../../services/historialReservas.service";
 import { historialUsuarioService, type HistorialUsuario } from "../../services/historialUsuario.service";
