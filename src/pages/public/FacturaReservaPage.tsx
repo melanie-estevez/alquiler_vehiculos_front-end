@@ -10,6 +10,11 @@ function backendMsg(err: any) {
   return Array.isArray(m) ? m.join(", ") : String(m);
 }
 
+function statusCode(err: any): number {
+  const s = err?.response?.status;
+  return typeof s === "number" ? s : 0;
+}
+
 function isUuid(x: any) {
   return (
     typeof x === "string" &&
@@ -29,6 +34,9 @@ export default function FacturaReservaPage() {
   const [reserva, setReserva] = useState<Reserva | null>(null);
   const [factura, setFactura] = useState<Factura | null>(null);
 
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [errorStatus, setErrorStatus] = useState<number>(0);
+
   const total = useMemo(() => Number(factura?.total ?? 0), [factura?.total]);
 
   useEffect(() => {
@@ -45,9 +53,14 @@ export default function FacturaReservaPage() {
     }
 
     const load = async () => {
-      try {
-        setLoading(true);
+      setLoading(true);
+      setErrorMsg("");
+      setErrorStatus(0);
+      setCliente(null);
+      setReserva(null);
+      setFactura(null);
 
+      try {
         const c = await clientesService.getCliente(true);
         if (!c) {
           navigate(`/profile?required=1&next=/factura/reserva/${idReserva}`, { replace: true });
@@ -60,8 +73,14 @@ export default function FacturaReservaPage() {
 
         const f = await facturasService.getByReserva(idReserva);
         setFactura(f);
-      } catch (err) {
-        alert("No se pudo cargar la factura: " + backendMsg(err));
+      } catch (err: any) {
+        const s = statusCode(err);
+        setErrorStatus(s);
+
+        if (s === 404) setErrorMsg("No se encontró la factura.");
+        else if (s === 400) setErrorMsg(backendMsg(err) || "Debe completar su perfil antes de facturar.");
+        else if (s === 403) setErrorMsg("No tiene permisos para ver esta factura.");
+        else setErrorMsg(backendMsg(err) || "Error interno del servidor.");
       } finally {
         setLoading(false);
       }
@@ -78,12 +97,44 @@ export default function FacturaReservaPage() {
     );
   }
 
+  if (errorMsg) {
+    return (
+      <div className="container mt-5 pt-4">
+        <p>{errorMsg}</p>
+
+        <div className="d-flex gap-2">
+          <button className="btn btn-outline-dark" onClick={() => navigate(-1)}>
+            Volver
+          </button>
+
+          {(errorStatus === 400 || errorStatus === 403) && (
+            <Link className="btn btn-dark" to={`/profile?required=1&next=/factura/reserva/${idReserva ?? ""}`}>
+              Ir a Perfil
+            </Link>
+          )}
+
+          {errorStatus !== 400 && errorStatus !== 403 && (
+            <Link className="btn btn-dark" to="/mis-reservas">
+              Ir a Mis Reservas
+            </Link>
+          )}
+        </div>
+
+        {errorStatus === 500 && (
+          <div className="mt-3 text-muted small">
+            Si estás en producción, el backend puede estar caído o sin tus cambios. Prueba en local o despliega el backend.
+          </div>
+        )}
+      </div>
+    );
+  }
+
   if (!cliente || !reserva || !factura) {
     return (
       <div className="container mt-5 pt-4">
-        <p>No se encontró la factura.</p>
+        <p>No se pudo cargar la factura.</p>
         <div className="d-flex gap-2">
-          <Link className="btn btn-outline-dark" to="/carros">
+          <Link className="btn btn-outline-dark" to="/mis-reservas">
             Volver
           </Link>
           <Link className="btn btn-dark" to={`/profile?required=1&next=/factura/reserva/${idReserva ?? ""}`}>
