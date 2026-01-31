@@ -1,6 +1,8 @@
 import { api } from "./api";
 import { pickItem, pickList } from "./http";
 
+export type EstadoVehiculo = "DISPONIBLE" | "MANTENIMIENTO" | "RENTADO" | "BAJA";
+
 export type Vehiculo = {
   id_vehiculo: string;
   marca: string;
@@ -8,9 +10,7 @@ export type Vehiculo = {
   anio: number;
   placa: string;
   precio_diario: number;
-
-  // ✅ incluye BAJA
-  estado: "DISPONIBLE" | "MANTENIMIENTO" | "RENTADO" | "BAJA";
+  estado: EstadoVehiculo;
 
   sucursal?: {
     id_sucursal: string;
@@ -33,7 +33,7 @@ export type CreateVehiculoDto = {
 };
 
 export type UpdateVehiculoDto = Partial<CreateVehiculoDto> & {
-  estado?: Vehiculo["estado"];
+  estado?: EstadoVehiculo;
 };
 
 export const VehiculosService = {
@@ -60,6 +60,13 @@ export const VehiculosService = {
   async remove(id: string): Promise<void> {
     await api.delete(`/vehiculos/${id}`);
   },
+
+  
+  async updateEstado(id: string, estado: EstadoVehiculo): Promise<Vehiculo> {
+    const res = await api.patch(`/vehiculos/${id}/estado`, { estado });
+    return pickItem<Vehiculo>(res);
+  },
+
 
   async uploadImagen(id: string, file: File): Promise<Vehiculo> {
     const fd = new FormData();
