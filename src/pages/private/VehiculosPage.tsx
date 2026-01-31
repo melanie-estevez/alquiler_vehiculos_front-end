@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useVehiculos } from "../../hooks/useVehiculos";
-import { VehiculosTable } from "../../components/vehiculos/VehiculosTable";
 import VehiculoFormModal from "../../components/vehiculos/VehiculoFormModal";
 import { useAuth } from "../../context/AuthContext";
 import type { Vehiculo } from "../../services/vehiculos.service";
 import { VehiculosService } from "../../services/vehiculos.service";
+import { VehiculosCatalog } from "../../components/vehiculos/VehiculosCatalog";
 
 export default function VehiculosPage() {
   const {
@@ -16,13 +16,11 @@ export default function VehiculosPage() {
     reload,
   } = useVehiculos();
 
-
   const { isAdmin } = useAuth();
 
   const [selected, setSelected] = useState<Vehiculo | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-
 
   const vehiculos = useMemo(() => {
     const v: any = vehiculosRaw as any;
@@ -31,11 +29,11 @@ export default function VehiculosPage() {
     return [];
   }, [vehiculosRaw]);
 
-
   const visibleVehiculos = isAdmin
     ? vehiculos
     : vehiculos.filter((v) => v.estado === "DISPONIBLE");
 
+  const ESTADOS = ["DISPONIBLE", "MANTENIMIENTO", "RENTADO", "BAJA"] as const;
 
   const toggleEstado = async (vehiculoId: string) => {
     try {
@@ -47,19 +45,22 @@ export default function VehiculosPage() {
         return;
       }
 
-      const nextEstado =
-        current.estado === "DISPONIBLE"
-          ? "MANTENIMIENTO"
-          : current.estado === "MANTENIMIENTO"
-          ? "RENTADO"
-          : "DISPONIBLE";
+      const idx = ESTADOS.indexOf(current.estado as any);
+      const nextEstado = ESTADOS[(idx + 1) % ESTADOS.length];
 
 
-      await VehiculosService.update(vehiculoId, {
+      const payload: any = {
         estado: nextEstado,
+        marca: current.marca,
+        modelo: current.modelo,
+        placa: current.placa,
+        anio: current.anio,
         precio_diario: current.precio_diario,
-      } as any);
+        id_sucursal:
+          (current as any).id_sucursal || current.sucursal?.id_sucursal || undefined,
+      };
 
+      await VehiculosService.update(vehiculoId, payload);
       await reload();
     } catch (e) {
       console.error("Error cambiando estado", e);
@@ -70,9 +71,17 @@ export default function VehiculosPage() {
   };
 
   return (
-    <div className="container mt-4">
-      <div className="d-flex justify-content-between mb-3">
-        <h2>Vehículos</h2>
+    <div className="container py-4">
+    
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+        <div>
+          <h2 className="mb-1">Catálogo de Vehículos</h2>
+          <div className="text-muted">
+            {isAdmin
+              ? "Admin: gestiona vehículos, estado e imágenes."
+              : "Explora los vehículos disponibles para alquilar."}
+          </div>
+        </div>
 
         {isAdmin && (
           <button
@@ -87,10 +96,11 @@ export default function VehiculosPage() {
         )}
       </div>
 
+   
       {loading ? (
-        <p>Cargando...</p>
+        <div className="text-muted">Cargando...</div>
       ) : (
-        <VehiculosTable
+        <VehiculosCatalog
           vehiculos={visibleVehiculos}
           isAdmin={isAdmin}
           updatingId={updatingId}
@@ -107,6 +117,7 @@ export default function VehiculosPage() {
         />
       )}
 
+
       {isAdmin && (
         <VehiculoFormModal
           show={showModal}
@@ -114,6 +125,7 @@ export default function VehiculosPage() {
           vehiculo={selected}
           onCreate={createVehiculo}
           onUpdate={updateVehiculo}
+          onAfterSave={reload}
         />
       )}
     </div>

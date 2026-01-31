@@ -1,133 +1,373 @@
-
-import { useEffect, useMemo, useState } from "react";
-import { Modal, Button, Alert } from "react-bootstrap";
-import {
-  type CreateVehiculoDto,
-  type UpdateVehiculoDto,
-  type Vehiculo,
+import React, { useEffect, useMemo, useState } from "react";
+import type {
+  Vehiculo,
+  CreateVehiculoDto,
+  UpdateVehiculoDto,
 } from "../../services/vehiculos.service";
-import { useSucursales } from "../../hooks/useSucursales";
+import { VehiculosService } from "../../services/vehiculos.service";
+
+type SucursalOption = { id: string; nombre: string };
 
 interface Props {
   show: boolean;
   onClose: () => void;
   vehiculo: Vehiculo | null;
-  onCreate: (data: CreateVehiculoDto) => Promise<void>;
-  onUpdate: (id: string, data: UpdateVehiculoDto) => Promise<void>;
+
+  // ✅ mismos tipos que usa el hook/service
+  onCreate: (data: CreateVehiculoDto) => Promise<Vehiculo>;
+  onUpdate: (id: string, data: UpdateVehiculoDto) => Promise<Vehiculo>;
+
+  onAfterSave?: () => Promise<void> | void;
 }
 
-export default function VehiculoFormModal({ show, onClose, vehiculo, onCreate, onUpdate }: Props) {
-  const { sucursales } = useSucursales();
+export default function VehiculoFormModal({
+  show,
+  onClose,
+  vehiculo,
+  onCreate,
+  onUpdate,
+  onAfterSave,
+}: Props) {
+  const isEdit = !!vehiculo;
 
-  const listSucursales = useMemo(() => (Array.isArray(sucursales) ? sucursales : []), [sucursales]);
+  const [marca, setMarca] = useState("");
+  const [modelo, setModelo] = useState("");
+  const [placa, setPlaca] = useState("");
+  const [anio, setAnio] = useState<number>(new Date().getFullYear());
+  const [precioDiario, setPrecioDiario] = useState<number>(0);
 
-  const [form, setForm] = useState({
-    marca: "",
-    modelo: "",
-    anio: "",
-    placa: "",
-    precio_diario: "",
-    id_sucursal: "",
-  });
+  // ✅ tipado real del estado
+  const [estado, setEstado] = useState<Vehiculo["estado"]>("DISPONIBLE");
+  const [idSucursal, setIdSucursal] = useState<string>("");
 
-  const [error, setError] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [linkImg, setLinkImg] = useState<string>("");
+
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string>("");
+
+  const [sucursales, setSucursales] = useState<SucursalOption[]>([]);
+  const [loadingSucursales, setLoadingSucursales] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
+    const loadSucursales = async () => {
+      try {
+        setLoadingSucursales(true);
+        const res: any = await (VehiculosService as any).getSucursales?.();
+        const items: any[] = Array.isArray(res) ? res : res?.items ?? res ?? [];
+
+        const parsed: SucursalOption[] = items
+          .map((s) => ({
+            id: String(s.id_sucursal ?? s.id ?? ""),
+            nombre: String(s.nombre ?? s.name ?? ""),
+          }))
+          .filter((s) => s.id && s.nombre);
+
+        if (mounted) setSucursales(parsed);
+      } catch {
+        if (mounted) setSucursales([]);
+      } finally {
+        if (mounted) setLoadingSucursales(false);
+      }
+    };
+
+    loadSucursales();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!show) return;
+
+    setError("");
+    setFile(null);
+
     if (vehiculo) {
-      setForm({
-        marca: vehiculo.marca ?? "",
-        modelo: vehiculo.modelo ?? "",
-        anio: String(vehiculo.anio ?? ""),
-        placa: vehiculo.placa ?? "",
-        precio_diario: String(vehiculo.precio_diario ?? ""),
-        id_sucursal: vehiculo.sucursal?.id_sucursal || (vehiculo as any).id_sucursal || "",
-      });
+      setMarca(vehiculo.marca ?? "");
+      setModelo(vehiculo.modelo ?? "");
+      setPlaca(vehiculo.placa ?? "");
+      setAnio(Number(vehiculo.anio ?? new Date().getFullYear()));
+      setPrecioDiario(Number(vehiculo.precio_diario ?? 0));
+      setEstado(vehiculo.estado ?? "DISPONIBLE");
+
+      const sid =
+        (vehiculo as any).id_sucursal ||
+        vehiculo.sucursal?.id_sucursal ||
+        (vehiculo as any).sucursal_id ||
+        "";
+      setIdSucursal(sid ? String(sid) : "");
+
+      const currentImg =
+        (vehiculo as any).imagen_url ||
+        (vehiculo as any).imagenUrl ||
+        (vehiculo as any).img_url ||
+        "";
+      setLinkImg(currentImg ? String(currentImg) : "");
     } else {
-      setForm({
-        marca: "",
-        modelo: "",
-        anio: "",
-        placa: "",
-        precio_diario: "",
-        id_sucursal: "",
-      });
+      setMarca("");
+      setModelo("");
+      setPlaca("");
+      setAnio(new Date().getFullYear());
+      setPrecioDiario(0);
+      setEstado("DISPONIBLE");
+      setIdSucursal("");
+      setLinkImg("");
     }
-    setError(null);
-  }, [vehiculo, show]);
+  }, [show, vehiculo]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const canSubmit = useMemo(() => {
+    if (!marca.trim()) return false;
+    if (!modelo.trim()) return false;
+    if (!placa.trim()) return false;
+    if (!anio || Number.isNaN(anio)) return false;
+    if (precioDiario === null || Number.isNaN(precioDiario)) return false;
+    return true;
+  }, [marca, modelo, placa, anio, precioDiario]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!canSubmit) {
+      setError("Completa los campos obligatorios.");
+      return;
+    }
+
     try {
-      setError(null);
       setSaving(true);
 
-      const payload: CreateVehiculoDto = {
-        marca: form.marca.trim(),
-        modelo: form.modelo.trim(),
-        placa: form.placa.trim(),
-        anio: Number(form.anio),
-        precio_diario: Number(form.precio_diario),
-        id_sucursal: form.id_sucursal ? form.id_sucursal : undefined,
-      };
-
-      if (!payload.marca || !payload.modelo || !payload.placa || isNaN(payload.anio) || isNaN(payload.precio_diario)) {
-        setError("Completa todos los campos correctamente");
-        return;
-      }
-
       if (vehiculo) {
+        // ✅ UpdateVehiculoDto (partial) + estado
+        const payload: UpdateVehiculoDto = {
+          marca: marca.trim(),
+          modelo: modelo.trim(),
+          placa: placa.trim(),
+          anio: Number(anio),
+          precio_diario: Number(precioDiario),
+          estado,
+          id_sucursal: idSucursal || undefined,
+        };
 
-        const update: UpdateVehiculoDto = { ...payload };
-        await onUpdate(vehiculo.id_vehiculo, update);
+        const updated = await onUpdate(vehiculo.id_vehiculo, payload);
+
+        const savedId = updated?.id_vehiculo || vehiculo.id_vehiculo;
+
+        if (savedId && file) await VehiculosService.uploadImagen(savedId, file);
+
+        const url = linkImg.trim();
+        if (savedId && url && url.startsWith("http")) {
+          await VehiculosService.updateImagenUrl(savedId, url);
+        }
       } else {
-        await onCreate(payload);
+        // ✅ CreateVehiculoDto NO lleva estado (según tu service)
+        const payload: CreateVehiculoDto = {
+          marca: marca.trim(),
+          modelo: modelo.trim(),
+          placa: placa.trim(),
+          anio: Number(anio),
+          precio_diario: Number(precioDiario),
+          id_sucursal: idSucursal || undefined,
+          imagen_url: linkImg.trim() || null,
+        };
+
+        const created = await onCreate(payload);
+        const savedId = created?.id_vehiculo;
+
+        if (savedId && file) await VehiculosService.uploadImagen(savedId, file);
+
+        // si quieres forzar estado al crear, lo harías con update luego (si tu API lo permite),
+        // pero por tipos tu CreateVehiculoDto no incluye estado.
       }
 
+      if (onAfterSave) await onAfterSave();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("No se pudo guardar el vehículo.");
+      setError(err?.message || "No se pudo guardar el vehículo.");
     } finally {
       setSaving(false);
     }
   };
 
+  if (!show) return null;
+
   return (
-    <Modal show={show} onHide={onClose} backdrop="static" centered>
-      <Modal.Header closeButton>
-        <Modal.Title>{vehiculo ? "Editar vehículo" : "Nuevo vehículo"}</Modal.Title>
-      </Modal.Header>
+    <div
+      className="modal d-block"
+      tabIndex={-1}
+      role="dialog"
+      style={{ background: "rgba(0,0,0,.35)" }}
+    >
+      <div className="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div className="modal-content rounded-4">
+          <div className="modal-header">
+            <h5 className="modal-title fw-bold">
+              {isEdit ? "Editar vehículo" : "Nuevo vehículo"}
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="Close"
+              onClick={onClose}
+              disabled={saving}
+            />
+          </div>
 
-      <Modal.Body>
-        {error && <Alert variant="danger">{error}</Alert>}
+          <form onSubmit={handleSubmit}>
+            <div className="modal-body">
+              {error && (
+                <div className="alert alert-danger py-2" role="alert">
+                  {error}
+                </div>
+              )}
 
-        <input className="form-control mb-2" name="marca" placeholder="Marca" value={form.marca} onChange={handleChange} />
-        <input className="form-control mb-2" name="modelo" placeholder="Modelo" value={form.modelo} onChange={handleChange} />
-        <input className="form-control mb-2" type="number" name="anio" placeholder="Año" value={form.anio} onChange={handleChange} />
-        <input className="form-control mb-2" name="placa" placeholder="Placa" value={form.placa} onChange={handleChange} />
-        <input className="form-control mb-2" type="number" name="precio_diario" placeholder="Precio diario" value={form.precio_diario} onChange={handleChange} />
+              <div className="row g-3">
+                <div className="col-12 col-md-6">
+                  <label className="form-label fw-semibold">Marca *</label>
+                  <input
+                    className="form-control"
+                    value={marca}
+                    onChange={(e) => setMarca(e.target.value)}
+                    disabled={saving}
+                    placeholder="Ej: Toyota"
+                  />
+                </div>
 
-        <select className="form-select" name="id_sucursal" value={form.id_sucursal} onChange={handleChange}>
-          <option value="">Sin sucursal</option>
-          {listSucursales.map((s) => (
-            <option key={s.id_sucursal} value={s.id_sucursal}>
-              {s.nombre} - {s.ciudad}
-            </option>
-          ))}
-        </select>
-      </Modal.Body>
+                <div className="col-12 col-md-6">
+                  <label className="form-label fw-semibold">Modelo *</label>
+                  <input
+                    className="form-control"
+                    value={modelo}
+                    onChange={(e) => setModelo(e.target.value)}
+                    disabled={saving}
+                    placeholder="Ej: Corolla"
+                  />
+                </div>
 
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onClose} disabled={saving}>
-          Cancelar
-        </Button>
-        <Button variant="dark" onClick={handleSubmit} disabled={saving}>
-          {saving ? "Guardando..." : "Guardar"}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+                <div className="col-12 col-md-6">
+                  <label className="form-label fw-semibold">Placa *</label>
+                  <input
+                    className="form-control"
+                    value={placa}
+                    onChange={(e) => setPlaca(e.target.value)}
+                    disabled={saving}
+                    placeholder="ABC-1234"
+                  />
+                </div>
+
+                <div className="col-6 col-md-3">
+                  <label className="form-label fw-semibold">Año *</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={anio}
+                    onChange={(e) => setAnio(Number(e.target.value))}
+                    disabled={saving}
+                    min={1900}
+                    max={2100}
+                  />
+                </div>
+
+                <div className="col-6 col-md-3">
+                  <label className="form-label fw-semibold">Precio/día *</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={precioDiario}
+                    onChange={(e) => setPrecioDiario(Number(e.target.value))}
+                    disabled={saving}
+                    min={0}
+                    step="0.01"
+                  />
+                </div>
+
+                {isEdit && (
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold">Estado</label>
+                    <select
+                      className="form-select"
+                      value={estado}
+                      onChange={(e) => setEstado(e.target.value as Vehiculo["estado"])}
+                      disabled={saving}
+                    >
+                      <option value="DISPONIBLE">DISPONIBLE</option>
+                      <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+                      <option value="RENTADO">RENTADO</option>
+                      <option value="BAJA">BAJA</option>
+                    </select>
+                  </div>
+                )}
+
+                <div className="col-12 col-md-6">
+                  <label className="form-label fw-semibold">Sucursal</label>
+                  <select
+                    className="form-select"
+                    value={idSucursal}
+                    onChange={(e) => setIdSucursal(e.target.value)}
+                    disabled={saving || loadingSucursales}
+                  >
+                    <option value="">(Sin asignar)</option>
+                    {sucursales.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingSucursales && (
+                    <div className="form-text">Cargando sucursales…</div>
+                  )}
+                </div>
+
+                <hr className="my-2" />
+
+                <div className="col-12">
+                  <label className="form-label fw-semibold">Imagen (archivo)</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    accept="image/*"
+                    disabled={saving}
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  />
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label fw-semibold">Imagen (URL)</label>
+                  <input
+                    className="form-control"
+                    value={linkImg}
+                    onChange={(e) => setLinkImg(e.target.value)}
+                    disabled={saving}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={onClose}
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                className="btn btn-dark"
+                disabled={saving || !canSubmit}
+              >
+                {saving ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }

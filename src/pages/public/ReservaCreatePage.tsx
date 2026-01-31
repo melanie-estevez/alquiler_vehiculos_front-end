@@ -6,6 +6,7 @@ import { clientesService, type ClienteMe } from "../../services/clientes.service
 import { historialUsuarioService } from "../../services/historialUsuario.service";
 import { historialReservasService } from "../../services/historialReservas.service";
 import { useAuth } from "../../context/AuthContext";
+import { API_BASE_URL } from "../../services/api";
 
 function addDays(dateStr: string, days: number) {
   const d = new Date(dateStr + "T00:00:00");
@@ -14,9 +15,19 @@ function addDays(dateStr: string, days: number) {
 }
 
 function backendMsg(err: any) {
-  const m = err?.response?.data?.message || err?.response?.data?.error || err?.message || "Error";
+  const m =
+    err?.response?.data?.message ||
+    err?.response?.data?.error ||
+    err?.message ||
+    "Error";
   return Array.isArray(m) ? m.join(", ") : String(m);
 }
+
+const imageUrl = (path?: string | null) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE_URL}${path}`;
+};
 
 export default function ReservaCreatePage() {
   const { id } = useParams<{ id: string }>();
@@ -148,18 +159,50 @@ export default function ReservaCreatePage() {
 
       <div className="card border-dark">
         <div className="card-body">
-          <p className="mb-1">
-            <b>Vehículo:</b> {vehiculo.marca} {vehiculo.modelo}
-          </p>
-          <p className="mb-1">
-            <b>Placa:</b> {vehiculo.placa}
-          </p>
-          <p className="mb-1">
-            <b>Precio diario:</b> ${Number(vehiculo.precio_diario || 0).toFixed(2)}
-          </p>
-          <p className="mb-1">
-            <b>Estado:</b> {vehiculo.estado}
-          </p>
+          <div className="d-flex gap-3 align-items-start flex-wrap">
+            {vehiculo.imagen_url ? (
+              <img
+                src={imageUrl(vehiculo.imagen_url)}
+                alt={`${vehiculo.marca} ${vehiculo.modelo}`}
+                style={{
+                  width: 200,
+                  height: 130,
+                  objectFit: "cover",
+                  borderRadius: 10,
+                  background: "#e9ecef",
+                  flexShrink: 0,
+                }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "";
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 200,
+                  height: 130,
+                  borderRadius: 10,
+                  background: "#e9ecef",
+                  flexShrink: 0,
+                }}
+              />
+            )}
+
+            <div style={{ flex: 1, minWidth: 240 }}>
+              <p className="mb-1">
+                <b>Vehículo:</b> {vehiculo.marca} {vehiculo.modelo}
+              </p>
+              <p className="mb-1">
+                <b>Placa:</b> {vehiculo.placa}
+              </p>
+              <p className="mb-1">
+                <b>Precio diario:</b> ${Number(vehiculo.precio_diario || 0).toFixed(2)}
+              </p>
+              <p className="mb-1">
+                <b>Estado:</b> {vehiculo.estado}
+              </p>
+            </div>
+          </div>
 
           <div className="mt-3">
             <label className="form-label">Fecha inicio</label>
