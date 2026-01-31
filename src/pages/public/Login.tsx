@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 function backendMsg(err: any) {
@@ -30,29 +30,53 @@ export default function Login() {
   };
 
   return (
-    <div className="container mt-5 pt-5" style={{ maxWidth: 520 }}>
-      <h2>Login</h2>
+    <div className="auth-wrap">
+      <div className="auth-card auth-split">
+        
+       
+        <div className="auth-image" />
 
-      <form onSubmit={handleSubmit}>
-        <input
-          className="form-control mb-2"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+       
+        <div className="auth-form-wrap">
+          <h2 className="auth-title">Iniciar sesión</h2>
 
-        <input
-          className="form-control mb-2"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
 
-        <button className="btn btn-dark w-100" disabled={loading}>
-          {loading ? "Entrando..." : "Entrar"}
-        </button>
-      </form>
+          <form onSubmit={handleSubmit}>
+            <div className="auth-field">
+              <label className="auth-label">Correo</label>
+              <input
+                className="auth-input"
+                placeholder="correo@ejemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="auth-field">
+              <label className="auth-label">Contraseña</label>
+              <input
+                className="auth-input"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+
+            <button className="auth-btn" disabled={loading}>
+              {loading ? "Entrando..." : "Entrar"}
+            </button>
+            <div className="auth-foot">
+              <span>¿No tienes cuenta?</span>{" "}
+              <Link to="/auth/register" className="auth-link">
+                Crear cuenta
+              </Link>
+            </div>
+
+          </form>
+        </div>
+      </div>
     </div>
   );
+
 }
